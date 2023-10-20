@@ -9,7 +9,6 @@ Resolves ?
 # Testing
 
 - [ ] Unit/Integration testing added/updated
-- [ ] Manually tested
-- [ ] Testing not required/not added
+- [ ] Unit/Integration testing not added/updated or not required
 
-If selecting the ***Testing not required/not added*** option, please specify here why this is the case.
+If selecting the second option, please specify here why this is the case.
