@@ -13,7 +13,7 @@ from fortran_parser import parse_file
 
 
 @click.group()
-def cli():
+def cli() -> None:
     pass
 
 
@@ -24,7 +24,7 @@ def cli():
     prompt=True,
     help="The full path to the file you wish to print to the console.",
 )
-def print_to_console(file_path):
+def print_to_console(file_path: str) -> None:
     try:
         for line in parse_file(file_path):
             click.echo(line, nl=False)
