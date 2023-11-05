@@ -1,3 +1,7 @@
 .DS_Store
 .idea/
 __pycache__/
+.vscode/
+
+# A directory containing Fortran 90 directories/files for testing on real data.
+f90_test_data/
