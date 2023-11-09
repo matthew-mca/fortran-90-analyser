@@ -1,21 +1,31 @@
 import os
-from typing import Dict, Generator, Union
+from typing import Generator, Union
+
+from file_data_models import *
 
 
 class FortranParser:
-    def parse_file(self, file_path: str) -> Generator[str, None, None]:
+    def parse_file(self, file_path: str) -> Union[DigitalFile, FortranFile]:
+        file_name = file_path.split("/")[-1]
+
+        if not self.is_f90_file(file_name):
+            return DigitalFile(file_name)
+        else:
+            file_contents = self.parse_file_contents(file_path)
+            return FortranFile(file_name, file_contents)
+
+    def parse_file_contents(self, file_path: str) -> Generator[str, None, None]:
         with open(file_path, "r") as f:
             line = f.readline()
             while line:
                 yield line
                 line = f.readline()
 
-    # TODO: Refactor to use Directory and File (and possibly File subclass for F90 files) classes
     def build_directory_tree(
         self,
         dir_path: str,
         include_non_fortran: bool = True,
-    ) -> Dict[str, Union[Dict, Generator, None]]:
+    ) -> Directory:
         """
         Builds out a representation of a specified directory.
 
@@ -29,7 +39,8 @@ class FortranParser:
         elif os.path.isfile(dir_path):
             raise ValueError("Specified path is a file, not a directory.")
 
-        directory_tree: Dict[str, Union[Dict, Generator, None]] = {}
+        root_dir_name = dir_path.split("/")[-1]
+        directory_tree: Directory = Directory(root_dir_name)
         current = directory_tree  # We will use current to build the inner dicts within the tree
 
         for root, dirs, files in os.walk(dir_path):
@@ -41,16 +52,15 @@ class FortranParser:
                 current = directory_tree
                 # We do not include the first item as it's an empty string
                 for level in working_dir_path.split("/")[1:]:
-                    current = current.setdefault(level)  # type: ignore[assignment]
+                    current = current.get_item(level)  # type: ignore[assignment]
 
-            for directory in dirs:
-                current[directory] = {}
+            for directory_name in dirs:
+                new_directory = Directory(directory_name)
+                current.add_subdirectory(new_directory)
 
-            for file in files:
-                if self.is_f90_file(file):
-                    current[file] = self.parse_file(f"{root}/{file}")
-                elif include_non_fortran:
-                    current[file] = None
+            for file_name in files:
+                new_file = self.parse_file(f"{root}/{file_name}")
+                current.add_file(new_file)
 
         return directory_tree
 

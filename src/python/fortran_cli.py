@@ -27,7 +27,7 @@ def cli() -> None:
 def print_to_console(file_path: str) -> None:
     f90_parser = FortranParser()
     try:
-        for line in f90_parser.parse_file(file_path):
+        for line in f90_parser.parse_file_contents(file_path):
             click.echo(line, nl=False)
     except FileNotFoundError:
         click.echo("Unable to print file contents - the file path you have provided is not valid.")
