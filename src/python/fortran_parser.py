@@ -59,8 +59,9 @@ class FortranParser:
                 current.add_subdirectory(new_directory)
 
             for file_name in files:
-                new_file = self.parse_file(f"{root}/{file_name}")
-                current.add_file(new_file)
+                if self.is_f90_file(file_name) or include_non_fortran:
+                    new_file = self.parse_file(f"{root}/{file_name}")
+                    current.add_file(new_file)
 
         return directory_tree
 
