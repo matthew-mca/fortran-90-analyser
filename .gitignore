@@ -2,6 +2,7 @@
 .idea/
 __pycache__/
 .vscode/
+.coverage
 
 # A directory containing Fortran 90 directories/files for testing on real data.
 f90_test_data/
