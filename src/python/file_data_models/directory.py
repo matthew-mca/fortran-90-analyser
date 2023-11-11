@@ -9,7 +9,7 @@ class Directory:
 
         self.subdirectories: Dict[str, Self] = {}
         for subdir in subdirectories:
-            subdirectories[subdir.name] = subdir
+            self.subdirectories[subdir.name] = subdir
 
         self.files: Dict[str, DigitalFile] = {}
         for file_obj in files:
