@@ -1,10 +1,12 @@
 import os
 from typing import Generator, Union
 
-from file_data_models import *
+from file_data_models.digital_file import DigitalFile
+from file_data_models.directory import Directory
+from file_data_models.fortran_file import FortranFile
 
 
-class FortranParser:
+class FileParser:
     def parse_file(self, file_path: str) -> Union[DigitalFile, FortranFile]:
         file_name = file_path.split("/")[-1]
 

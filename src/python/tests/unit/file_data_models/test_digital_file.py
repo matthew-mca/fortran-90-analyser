@@ -1,6 +1,6 @@
 import pytest
 
-from file_data_models import DigitalFile
+from file_data_models.digital_file import DigitalFile
 
 
 class TestDigitalFile:

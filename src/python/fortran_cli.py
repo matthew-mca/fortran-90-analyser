@@ -9,7 +9,7 @@ print-to-console: Prints the raw contents of a specified file.
 """
 import click
 
-from fortran_parser import FortranParser
+from parsers.file_parser import FileParser
 
 
 @click.group()
@@ -25,9 +25,9 @@ def cli() -> None:
     help="The full path to the file you wish to print to the console.",
 )
 def print_to_console(file_path: str) -> None:
-    f90_parser = FortranParser()
+    file_parser = FileParser()
     try:
-        for line in f90_parser.parse_file_contents(file_path):
+        for line in file_parser.parse_file_contents(file_path):
             click.echo(line, nl=False)
     except FileNotFoundError:
         click.echo("Unable to print file contents - the file path you have provided is not valid.")
