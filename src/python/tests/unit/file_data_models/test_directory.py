@@ -1,6 +1,7 @@
 import pytest
 
-from file_data_models import Directory, DigitalFile
+from file_data_models.digital_file import DigitalFile
+from file_data_models.directory import Directory
 
 
 @pytest.fixture

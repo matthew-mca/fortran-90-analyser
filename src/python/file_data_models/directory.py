@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional, Self, Union
 
-from file_data_models import DigitalFile
+from .digital_file import DigitalFile
 
 
 class Directory:
@@ -30,7 +30,7 @@ class Directory:
     def get_item(self, key: str) -> Optional[Union[DigitalFile, Self]]:
         all_items = {}
         all_items.update(self.subdirectories)
-        all_items.update(self.files)
+        all_items.update(self.files)  # type: ignore[arg-type]
 
         return all_items.get(key)
 
