@@ -2,6 +2,10 @@
 format-code:
 	@black src
 
+.PHONY: dependencies
+dependencies:
+	@pip-sync requirements.txt requirements-dev.txt
+
 .PHONY: test
 test:
 	@coverage run -m pytest
