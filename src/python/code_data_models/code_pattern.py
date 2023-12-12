@@ -1,14 +1,6 @@
-"""
-An enum that contains the code block names and regex patterns for various components of Fortran 90 code.
-
-The second enum houses all the regular expressions that correspond to the different types of code blocks
-that we aim to parse. This means that as more support is added for the different formatting of Fortran 90,
-these patterns can just be directly edited rather than trying to adapt the parsing logic in multiple 
-places.
-"""
-
-
 class CodePattern:
+    """The names of all the types of Fortran code blocks we want to parse in this project."""
+
     COMMENT = "COMMENT"
     END = "END"
     FUNCTION = "FUNCTION"
@@ -24,6 +16,8 @@ class CodePattern:
 
 
 class CodePatternRegex:
+    """The regex patterns for all the types of Fortran code blocks we want to parse in this project."""
+
     COMMENT = r""
     FUNCTION = r""
     FUNCTION_END = r""
