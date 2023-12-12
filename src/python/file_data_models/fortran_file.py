@@ -11,7 +11,22 @@ from .digital_file import DigitalFile
 
 
 class FortranFile(DigitalFile):
+    """A file with the .f90 extension. Stores Fortran 90 code.
+
+    Attributes:
+        file_name: The name of the file.
+        contents: A list of all the lines of code in the file.
+        components: The detected code blocks that make up the file.
+    """
+
     def __init__(self, file_name: str, contents: Iterable[str] = []) -> None:
+        """Initialises a file object, and then tags and parses its contents.
+
+        Args:
+            file_name: The name of the file.
+            contents: The lines of code that make up the file.
+        """
+
         super().__init__(file_name)
         self.contents: List[CodeLine] = [CodeLine(line) for line in contents]
         self.components: List[CodeBlock] = []
@@ -19,9 +34,19 @@ class FortranFile(DigitalFile):
         self._parse_code_blocks()
 
     def get_snippet(self, start_index: int, end_index: int) -> List[CodeLine]:
+        """Returns a slice of the file's contents.
+
+        Args:
+            start_index: The index of the first line to include in the slice.
+            end_index: The index of where to end the slice. The line at this
+              index is not included.
+        """
+
         return self.contents[start_index:end_index]
 
     def _tag_lines(self) -> None:
+        """Iterates through the file and tags each line with the possible patterns it could be."""
+
         code_patterns = [
             (CodePattern.MODULE, CodePatternRegex.MODULE),
             (CodePattern.MODULE_END, CodePatternRegex.MODULE_END),
@@ -37,6 +62,8 @@ class FortranFile(DigitalFile):
                     line.add_pattern(pattern)
 
     def _parse_code_blocks(self) -> None:
+        """Analyses the tagged lines in the file and creates code block objects."""
+
         parser = CodeParser()
         stack = CodeParserStack()
 
