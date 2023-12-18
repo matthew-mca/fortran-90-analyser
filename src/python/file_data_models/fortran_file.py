@@ -1,5 +1,5 @@
 import re
-from typing import Iterable, List, Optional
+from typing import Iterable, List
 
 from code_data_models.code_block import CodeBlock
 from code_data_models.code_line import CodeLine

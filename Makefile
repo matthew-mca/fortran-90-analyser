@@ -6,6 +6,10 @@ format-code:
 dependencies:
 	@pip-sync requirements.txt requirements-dev.txt
 
+.PHONY: lint
+lint:
+	@flake8 src
+
 .PHONY: test
 test:
 	@coverage run -m pytest

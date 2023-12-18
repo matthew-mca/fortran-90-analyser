@@ -21,7 +21,7 @@ def populated_dir():
 class TestDirectory:
     def test_directory_bad_init(self):
         with pytest.raises(TypeError):
-            test_dir = Directory()
+            test_dir = Directory()  # noqa: F841
 
     def test_init_empty_dir(self, empty_dir):
         assert empty_dir.name == "empty_dir_fixture"

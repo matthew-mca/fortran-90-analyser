@@ -22,7 +22,7 @@ class TestFortranFile:
 
     def test_fortran_file_bad_init(self):
         with pytest.raises(TypeError):
-            test_f90_file = FortranFile()
+            test_f90_file = FortranFile()  # noqa: F841
 
     def test_init_fortran_file(self):
         test_f90_file = FortranFile("test_file")
