@@ -11,7 +11,7 @@ class TestCodeLine:
 
     def test_code_line_bad_init(self):
         with pytest.raises(TypeError):
-            test_code_line = CodeLine()
+            test_code_line = CodeLine()  # noqa: F841
 
     def test_init_code_line(self):
         line = "END PROGRAM test_program"

@@ -32,13 +32,13 @@ class TestCodeParserStack:
         assert empty_stack.size() == 1
 
     def test_is_empty(self, empty_stack):
-        assert empty_stack.is_empty() == True
+        assert empty_stack.is_empty()
 
         empty_stack.push(CodePattern.TYPE, 73)
-        assert empty_stack.is_empty() == False
+        assert not empty_stack.is_empty()
 
         empty_stack.peek()
-        assert empty_stack.is_empty() == False
+        assert not empty_stack.is_empty()
 
         empty_stack.pop()
-        assert empty_stack.is_empty() == True
+        assert empty_stack.is_empty()
