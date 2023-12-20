@@ -1,0 +1,49 @@
+image: python:3.11.2
+stages:
+  - build
+  - test
+  - format
+  - style
+
+install-dependencies:
+  stage: build
+  only:
+    - merge_requests
+  script:
+    - pip3 install -r requirements.txt
+    - pip3 install -r requirements-dev.txt
+
+unit-test: # Once we test live data, add a separate stage for integration
+  stage: test
+  only:
+    - merge_requests
+  script:
+    - python3 -m pytest
+
+black:
+  stage: format
+  only:
+    - merge_requests
+  script: 
+    - black --check src/python/
+
+isort:
+  stage: format
+  only:
+    - merge_requests
+  script:
+    - isort . --check-only
+
+flake8:
+  stage: style
+  only:
+    - merge_requests
+  script:
+    - flake8 -v src/python/
+
+mypy:
+  stage: style
+  only:
+    - merge_requests
+  script:
+    - mypy src/python/

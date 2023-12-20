@@ -3,6 +3,7 @@
 __pycache__/
 .vscode/
 .coverage
+builds/*
 
 # A directory containing Fortran 90 directories/files for testing on real data.
 f90_test_data/
