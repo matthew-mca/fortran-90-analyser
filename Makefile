@@ -1,6 +1,6 @@
 .PHONY: format-code
 format-code:
-	@black src
+	@black src/python/
 
 .PHONY: dependencies
 dependencies:
@@ -8,7 +8,7 @@ dependencies:
 
 .PHONY: lint
 lint:
-	@flake8 src
+	@flake8 src/python/
 
 .PHONY: test
 test:
@@ -21,4 +21,4 @@ test-with-coverage:
 
 .PHONY: type-check
 type-check:
-	@mypy src
+	@mypy src/python/
