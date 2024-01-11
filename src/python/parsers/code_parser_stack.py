@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import List, Tuple
 
+from utils.repr_builder import build_repr_from_attributes
+
 
 @dataclass
 class CodeParserStackItem:
@@ -79,3 +81,9 @@ class CodeParserStack:
         """
 
         return self.size() == 0
+
+    def __repr__(self) -> str:
+        return build_repr_from_attributes(
+            class_name=type(self).__name__,
+            item_count=self.size(),
+        )

@@ -1,5 +1,7 @@
 from typing import List
 
+from utils.repr_builder import build_repr_from_attributes
+
 from .code_pattern import CodePattern
 
 
@@ -51,5 +53,7 @@ class CodeLine:
         return any(CodePattern.END in pattern for pattern in self.matched_patterns)  # type: ignore[operator]
 
     def __repr__(self) -> str:
-        class_name = type(self).__name__
-        return f"{class_name}({self.line_content!r}, {self.matched_patterns})"
+        return build_repr_from_attributes(
+            class_name=type(self).__name__,
+            line_content=self.line_content,
+        )

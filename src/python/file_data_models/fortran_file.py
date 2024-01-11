@@ -6,6 +6,7 @@ from code_data_models.code_line import CodeLine
 from code_data_models.code_pattern import CodePattern, CodePatternRegex
 from parsers.code_parser import CodeParser
 from parsers.code_parser_stack import CodeParserStack
+from utils.repr_builder import build_repr_from_attributes
 
 from .digital_file import DigitalFile
 
@@ -82,3 +83,11 @@ class FortranFile(DigitalFile):
                 self.components.append(parser.build_code_block_object(block_type, block_contents))
 
         assert stack.is_empty()  # A non-empty stack means a code block has not been resolved somewhere
+
+    def __repr__(self) -> str:
+        return build_repr_from_attributes(
+            class_name=type(self).__name__,
+            file_name=self.file_name,
+            lines_of_code=len(self.contents),
+            code_blocks=len(self.components),
+        )

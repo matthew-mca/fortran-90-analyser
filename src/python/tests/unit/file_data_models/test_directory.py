@@ -74,3 +74,10 @@ class TestDirectory:
 
         result = populated_dir.get_item("nonsense_key")
         assert result is None
+
+    def test_directory_repr(self, empty_dir, populated_dir):
+        expected_repr = "Directory(name='empty_dir_fixture', files=0, subdirectories=0)"
+        assert repr(empty_dir) == expected_repr
+
+        expected_repr = "Directory(name='populated_dir_fixture', files=2, subdirectories=1)"
+        assert repr(populated_dir) == expected_repr

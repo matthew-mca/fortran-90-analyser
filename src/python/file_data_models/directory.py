@@ -1,5 +1,7 @@
 from typing import Dict, List, Optional, Self, Union
 
+from utils.repr_builder import build_repr_from_attributes
+
 from .digital_file import DigitalFile
 
 
@@ -86,3 +88,11 @@ class Directory:
             return True
         else:
             return False
+
+    def __repr__(self) -> str:
+        return build_repr_from_attributes(
+            class_name=type(self).__name__,
+            name=self.name,
+            files=len(self.files),
+            subdirectories=len(self.subdirectories),
+        )

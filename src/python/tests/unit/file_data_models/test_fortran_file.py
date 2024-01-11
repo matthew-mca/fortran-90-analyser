@@ -48,3 +48,7 @@ class TestFortranFile:
     def test_parse_code_blocks(self, hello_world_file):
         assert len(hello_world_file.components) == 1
         assert isinstance(hello_world_file.components[0], FortranProgram)
+
+    def test_fortran_file_repr(self, hello_world_file):
+        expected_repr = "FortranFile(file_name='hello_world_file', lines_of_code=3, code_blocks=1)"
+        assert repr(hello_world_file) == expected_repr
