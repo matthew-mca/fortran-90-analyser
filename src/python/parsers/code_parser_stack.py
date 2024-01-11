@@ -10,21 +10,22 @@ class CodeParserStackItem:
 
     Attributes:
         item_type: The type of code block start that was detected.
-        index: The index at which the code block starts in the code being parsed.
+        line_number: The line number at which the code block starts
+          in the overall file.
     """
 
     item_type: str
-    index: int
+    line_number: int
 
 
 class CodeParserStack:
     """A stack that is used to keep track of where code blocks start and end.
 
     When the start of a certain type of code block is detected, the type of block
-    and the index at which it starts are added into the stack in the form of a
+    and the line number at which it starts are added into the stack in the form of a
     CodeParserStackItem. When an END statement is detected, the item at the top of
     the stack is popped off the stack. The info in the stack item can then be used
-    along with the index of the corresponding END statement to construct a code block
+    along with the line number of the corresponding END statement to construct a code block
     object.
 
     Attributes:
@@ -36,37 +37,37 @@ class CodeParserStack:
 
         self.items: List[CodeParserStackItem] = []
 
-    def push(self, statement_type: str, index: int) -> None:
+    def push(self, statement_type: str, line_number: int) -> None:
         """Pushes a stack item onto the top of the stack.
 
         Args:
             statement_type: The type of program statement, e.g. the start of a program.
-            index: The index of the statement in the code block it came from.
+            line_number: The line number of the statement in the file it came from.
         """
 
-        self.items.append(CodeParserStackItem(statement_type, index))
+        self.items.append(CodeParserStackItem(statement_type, line_number))
 
     def pop(self) -> Tuple[str, int]:
         """Pops the top stack item off of the stack and returns its values.
 
         Returns:
-            A tuple (type, index), where 'type' is the type of program statement the
-            line matched, and 'index' is the index of the line in the code it came from.
+            A tuple (type, line_number), where 'type' is the type of program statement the
+            line matched, and 'line_number' is the number of the line in the file it came from.
         """
 
         stack_item = self.items.pop()
-        return stack_item.item_type, stack_item.index
+        return stack_item.item_type, stack_item.line_number
 
     def peek(self) -> Tuple[str, int]:
         """Returns the values of the stack item at the top of the stack without removing it.
 
         Returns:
-            A tuple (type, index), where 'type' is the type of program statement the
-            line matched, and 'index' is the index of the line in the code it came from.
+            A tuple (type, line_number), where 'type' is the type of program statement the
+            line matched, and 'line_number' is the number of the line in the file it came from.
         """
 
         stack_item = self.items[-1]
-        return stack_item.item_type, stack_item.index
+        return stack_item.item_type, stack_item.line_number
 
     def size(self) -> int:
         """Returns the number of items currently in the stack."""

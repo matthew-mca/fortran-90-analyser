@@ -2,8 +2,8 @@ import re
 from typing import Iterable, List
 
 from code_data_models.code_block import CodeBlock
-from code_data_models.code_line import CodeLine
 from code_data_models.code_pattern import CodePattern, CodePatternRegex
+from code_data_models.code_statement import CodeStatement
 from parsers.code_parser import CodeParser
 from parsers.code_parser_stack import CodeParserStack
 from utils.repr_builder import build_repr_from_attributes
@@ -29,21 +29,49 @@ class FortranFile(DigitalFile):
         """
 
         super().__init__(file_name)
-        self.contents: List[CodeLine] = [CodeLine(line) for line in contents]
+
+        self.contents: List[CodeStatement] = []
+        for index, line in enumerate(contents):
+            # This stops several commands on one line being counted as a single statement
+            all_statements = [statement.strip() for statement in line.split(";")]
+
+            for statement in all_statements:
+                # Line numbers in almost all editors start at 1, hence the increment of index here
+                self.contents.append(CodeStatement((index + 1), statement))
+
         self.components: List[CodeBlock] = []
         self._tag_lines()
         self._parse_code_blocks()
 
-    def get_snippet(self, start_index: int, end_index: int) -> List[CodeLine]:
+    def get_snippet(self, start_line: int, end_line: int) -> List[CodeStatement]:
         """Returns a slice of the file's contents.
 
+        Returns all statements in the file with line numbers between the given
+        start and end values (inclusive). The returned list may end up being slightly
+        longer than (end - start) items, since it is legal in Fortran to put multiple
+        statements on the same line by using semicolons.
+
         Args:
-            start_index: The index of the first line to include in the slice.
-            end_index: The index of where to end the slice. The line at this
-              index is not included.
+            start_line: The number of the first line to include in the slice.
+            end_line: The final line number to include in the slice.
+
+        Returns:
+            A list of all CodeLine objects found with line numbers in the given range
+            (inclusive).
+
+        Raises:
+            ValueError: The provided start or end line number is below 1.
         """
 
-        return self.contents[start_index:end_index]
+        if start_line < 1 or end_line < 1:
+            raise ValueError("Line numbers cannot be less than 1.")
+
+        statements_in_range = []
+        for statement in self.contents:
+            if start_line <= statement.line_number <= end_line:
+                statements_in_range.append(statement)
+
+        return statements_in_range
 
     def _tag_lines(self) -> None:
         """Iterates through the file and tags each line with the possible patterns it could be."""
@@ -59,7 +87,7 @@ class FortranFile(DigitalFile):
 
         for line in self.contents:
             for pattern, pattern_regex in code_patterns:
-                if re.match(pattern_regex, line.line_content):
+                if re.match(pattern_regex, line.content):
                     line.add_pattern(pattern)
 
     def _parse_code_blocks(self) -> None:
@@ -68,18 +96,16 @@ class FortranFile(DigitalFile):
         parser = CodeParser()
         stack = CodeParserStack()
 
-        for index, line in enumerate(self.contents):
+        for line in self.contents:
             if not line.has_matched_patterns():
                 continue
 
-            # TODO: This will definitely need changed to account for lines with semicolons,
-            # but going to keep as is for the time being. When ready, add a test case for this.
-            if not line.contains_end_statement() and line.has_matched_patterns():
-                stack.push(line.matched_patterns[0], index)
+            if not line.is_end_statement() and line.has_matched_patterns():
+                stack.push(line.matched_patterns[0], line.line_number)
 
-            if line.contains_end_statement():
-                block_type, start_index = stack.pop()
-                block_contents = self.get_snippet(start_index, index) + [line]  # Include current line too
+            if line.is_end_statement():
+                block_type, start_line = stack.pop()
+                block_contents = self.get_snippet(start_line, line.line_number)
                 self.components.append(parser.build_code_block_object(block_type, block_contents))
 
         assert stack.is_empty()  # A non-empty stack means a code block has not been resolved somewhere
@@ -91,3 +117,14 @@ class FortranFile(DigitalFile):
             lines_of_code=len(self.contents),
             code_blocks=len(self.components),
         )
+
+    def __len__(self) -> int:
+        if not self.contents:
+            return 0
+
+        first_statement = self.contents[0]
+        last_statement = self.contents[-1]
+
+        # Add 1 to final result to account for line numbers starting at 1
+        # e.g. A 5 line long file will do 5 - 1 and end up with length 4... so add 1.
+        return (last_statement.line_number - first_statement.line_number) + 1

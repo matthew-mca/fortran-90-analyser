@@ -3,7 +3,7 @@ from typing import List
 
 from utils.repr_builder import build_repr_from_attributes
 
-from .code_line import CodeLine
+from .code_statement import CodeStatement
 
 
 class CodeBlock(ABC):
@@ -19,7 +19,7 @@ class CodeBlock(ABC):
     """
 
     @abstractmethod
-    def __init__(self, contents: List[CodeLine]) -> None:
+    def __init__(self, contents: List[CodeStatement]) -> None:
         """Initialises a code block containing the provided lines of code.
 
         Args:
@@ -28,22 +28,19 @@ class CodeBlock(ABC):
 
         self.contents = contents
 
-    # TODO: See if removing abstractmethod here can reduce unnecessary
-    # calls to super in child classes while working on issue 14
-    @abstractmethod
-    def get_snippet(self, start_index: int, end_index: int) -> List[CodeLine]:
-        """Returns a slice of the block's contents.
-
-        Args:
-            start_index: The index of the first line to include in the slice.
-            end_index: The index of where to end the slice. The line at this
-              index is not included.
-        """
-
-        return self.contents[start_index:end_index]
-
     def __repr__(self) -> str:
         return build_repr_from_attributes(
             class_name=type(self).__name__,
             lines_of_code=len(self.contents),
         )
+
+    def __len__(self) -> int:
+        if not self.contents:
+            return 0
+
+        first_statement = self.contents[0]
+        last_statement = self.contents[-1]
+
+        # Add 1 to final result to account for line numbers starting at 1
+        # e.g. A 5 line long file will do 5 - 1 and end up with length 4... so add 1.
+        return (last_statement.line_number - first_statement.line_number) + 1
