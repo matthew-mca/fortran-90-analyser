@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List
 
+from utils.repr_builder import build_repr_from_attributes
+
 from .code_line import CodeLine
 
 
@@ -26,6 +28,8 @@ class CodeBlock(ABC):
 
         self.contents = contents
 
+    # TODO: See if removing abstractmethod here can reduce unnecessary
+    # calls to super in child classes while working on issue 14
     @abstractmethod
     def get_snippet(self, start_index: int, end_index: int) -> List[CodeLine]:
         """Returns a slice of the block's contents.
@@ -37,3 +41,9 @@ class CodeBlock(ABC):
         """
 
         return self.contents[start_index:end_index]
+
+    def __repr__(self) -> str:
+        return build_repr_from_attributes(
+            class_name=type(self).__name__,
+            lines_of_code=len(self.contents),
+        )

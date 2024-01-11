@@ -42,3 +42,7 @@ class TestCodeParserStack:
 
         empty_stack.pop()
         assert empty_stack.is_empty()
+
+    def test_code_parser_stack_repr(self, empty_stack):
+        expected_repr = "CodeParserStack(item_count=0)"
+        assert repr(empty_stack) == expected_repr

@@ -1,3 +1,6 @@
+from utils.repr_builder import build_repr_from_object
+
+
 class DigitalFile:
     """A digital computer file.
 
@@ -13,3 +16,6 @@ class DigitalFile:
         """
 
         self.file_name: str = file_name
+
+    def __repr__(self) -> str:
+        return build_repr_from_object(self)

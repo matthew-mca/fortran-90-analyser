@@ -40,6 +40,5 @@ class TestCodeLine:
         assert hello_world_line.contains_end_statement() is True
 
     def test_code_line_repr(self, hello_world_line):
-        hello_world_line.add_pattern(CodePattern.COMMENT)
-
-        assert repr(hello_world_line) == "CodeLine(\"Print *, 'Hello World'\", ['COMMENT'])"
+        expected_repr = "CodeLine(line_content=\"Print *, 'Hello World'\")"
+        assert repr(hello_world_line) == expected_repr
