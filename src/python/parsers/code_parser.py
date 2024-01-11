@@ -1,8 +1,8 @@
 from typing import List
 
 from code_data_models.code_block import CodeBlock
-from code_data_models.code_line import CodeLine
 from code_data_models.code_pattern import CodePattern
+from code_data_models.code_statement import CodeStatement
 from code_data_models.fortran_module import FortranModule
 from code_data_models.fortran_program import FortranProgram
 from code_data_models.fortran_type import FortranType
@@ -11,7 +11,7 @@ from code_data_models.fortran_type import FortranType
 class CodeParser:
     """Parses blocks of code and builds an object representation of the block."""
 
-    def build_code_block_object(self, block_type: str, contents: List[CodeLine]) -> CodeBlock:
+    def build_code_block_object(self, block_type: str, contents: List[CodeStatement]) -> CodeBlock:
         """Builds a code block object by reading the block type and calling the appropriate function.
 
         Args:
@@ -31,17 +31,17 @@ class CodeParser:
 
     # These functions shall soon house extra logic,
     # but for now they just instantiate an object and send it back.
-    def _build_module(self, contents: List[CodeLine]) -> FortranModule:
+    def _build_module(self, contents: List[CodeStatement]) -> FortranModule:
         """Builds and returns a Fortran module object."""
 
         return FortranModule(contents)
 
-    def _build_program(self, contents: List[CodeLine]) -> FortranProgram:
+    def _build_program(self, contents: List[CodeStatement]) -> FortranProgram:
         """Builds and returns a Fortran program object."""
 
         return FortranProgram(contents)
 
-    def _build_type(self, contents: List[CodeLine]) -> FortranType:
+    def _build_type(self, contents: List[CodeStatement]) -> FortranType:
         """Builds and returns a Fortran 'derived type' object."""
 
         return FortranType(contents)

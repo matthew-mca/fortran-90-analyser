@@ -1,7 +1,7 @@
 from typing import List
 
 from .code_block import CodeBlock
-from .code_line import CodeLine
+from .code_statement import CodeStatement
 
 
 class FortranType(CodeBlock):
@@ -11,12 +11,7 @@ class FortranType(CodeBlock):
         contents: The lines of code that make up the type.
     """
 
-    def __init__(self, contents: List[CodeLine]) -> None:
+    def __init__(self, contents: List[CodeStatement]) -> None:
         """Initialises a type object."""
 
         super().__init__(contents)
-
-    def get_snippet(self, start_index: int, end_index: int) -> List[CodeLine]:
-        """See base class."""
-
-        return super().get_snippet(start_index, end_index)
