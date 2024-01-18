@@ -87,7 +87,7 @@ class FortranFile(DigitalFile):
 
         for line in self.contents:
             for pattern, pattern_regex in code_patterns:
-                if re.match(pattern_regex, line.content):
+                if re.match(pattern_regex, line.content, re.IGNORECASE):
                     line.add_pattern(pattern)
 
     def _parse_code_blocks(self) -> None:
