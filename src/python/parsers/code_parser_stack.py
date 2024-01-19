@@ -1,7 +1,11 @@
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 from utils.repr_builder import build_repr_from_attributes
+
+
+class EmptyStackError(Exception):
+    pass
 
 
 @dataclass
@@ -53,18 +57,27 @@ class CodeParserStack:
         Returns:
             A tuple (type, line_number), where 'type' is the type of program statement the
             line matched, and 'line_number' is the number of the line in the file it came from.
+
+        Raises:
+            EmptyStackError: A pop was attempted while the stack was empty.
         """
+
+        if self.is_empty():
+            raise EmptyStackError("Cannot pop: stack is empty")
 
         stack_item = self.items.pop()
         return stack_item.item_type, stack_item.line_number
 
-    def peek(self) -> Tuple[str, int]:
+    def peek(self) -> Union[Tuple[str, int], Tuple[None, None]]:
         """Returns the values of the stack item at the top of the stack without removing it.
 
         Returns:
             A tuple (type, line_number), where 'type' is the type of program statement the
             line matched, and 'line_number' is the number of the line in the file it came from.
+            If the stack is empty, None is returned.
         """
+        if self.is_empty():
+            return None, None
 
         stack_item = self.items[-1]
         return stack_item.item_type, stack_item.line_number
