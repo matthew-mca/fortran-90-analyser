@@ -77,10 +77,16 @@ class FortranFile(DigitalFile):
         """Iterates through the file and tags each line with the possible patterns it could be."""
 
         code_patterns = [
+            (CodePattern.FUNCTION, CodePatternRegex.FUNCTION),
+            (CodePattern.FUNCTION_END, CodePatternRegex.FUNCTION_END),
+            (CodePattern.INTERFACE, CodePatternRegex.INTERFACE),
+            (CodePattern.INTERFACE_END, CodePatternRegex.INTERFACE_END),
             (CodePattern.MODULE, CodePatternRegex.MODULE),
             (CodePattern.MODULE_END, CodePatternRegex.MODULE_END),
             (CodePattern.PROGRAM, CodePatternRegex.PROGRAM),
             (CodePattern.PROGRAM_END, CodePatternRegex.PROGRAM_END),
+            (CodePattern.SUBROUTINE, CodePatternRegex.SUBROUTINE),
+            (CodePattern.SUBROUTINE_END, CodePatternRegex.SUBROUTINE_END),
             (CodePattern.TYPE, CodePatternRegex.TYPE),
             (CodePattern.TYPE_END, CodePatternRegex.TYPE_END),
         ]
@@ -109,6 +115,12 @@ class FortranFile(DigitalFile):
                 self.components.append(parser.build_code_block_object(block_type, block_contents))
 
         assert stack.is_empty()  # A non-empty stack means a code block has not been resolved somewhere
+
+        # TODO: Should probably think about adding some sort of check that any END statements that
+        # include the name of a function/program/module etc match up with the name in the declaration,
+        # as it's not syntactically correct otherwise... not sure if in here or in the code parser though.
+        # Edit: should probably add individual quirks for each code block as checks in their respective
+        # child classes. Or in the respective functions in the parser...
 
     def __repr__(self) -> str:
         return build_repr_from_attributes(
