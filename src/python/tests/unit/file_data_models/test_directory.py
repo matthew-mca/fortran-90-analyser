@@ -2,6 +2,7 @@ import pytest
 
 from file_data_models.digital_file import DigitalFile
 from file_data_models.directory import Directory
+from file_data_models.fortran_file import FortranFile
 
 
 @pytest.fixture
@@ -81,3 +82,22 @@ class TestDirectory:
 
         expected_repr = "Directory(name='populated_dir_fixture', files=2, subdirectories=1)"
         assert repr(populated_dir) == expected_repr
+
+    def test_get_all_fortran_files(self, empty_dir):
+        sub_dir = Directory("test_subdir")
+        sub_dir.add_file(FortranFile("sub_file1"))
+        sub_dir.add_file(FortranFile("sub_file2"))
+
+        empty_dir.add_subdirectory(sub_dir)
+        empty_dir.add_file(FortranFile("test_file1"))
+        empty_dir.add_file(FortranFile("test_file2"))
+
+        retrieved_files = empty_dir.get_all_fortran_files()
+        assert len(retrieved_files) == 4
+        assert isinstance(retrieved_files, list)
+
+        retrieved_file_names = [file_obj.file_name for file_obj in retrieved_files]
+        expected_file_names = ["sub_file1", "sub_file2", "test_file1", "test_file2"]
+
+        for name in expected_file_names:
+            assert name in retrieved_file_names

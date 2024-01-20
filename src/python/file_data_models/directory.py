@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Self, Union
 from utils.repr_builder import build_repr_from_attributes
 
 from .digital_file import DigitalFile
+from .fortran_file import FortranFile
 
 
 class Directory:
@@ -78,6 +79,22 @@ class Directory:
         all_items.update(self.files)  # type: ignore[arg-type]
 
         return all_items.get(key)
+
+    def get_all_fortran_files(self) -> List[FortranFile]:
+        """Returns a list containing all the Fortran files found in the directory.
+
+        This function searches not only the current directory, but also any directories
+        at a lower level than the current directory, gathering any and all Fortran files.
+
+        Returns:
+            A list of Fortran files found in the current directory or any subdirectories.
+        """
+
+        fortran_files = [file_obj for file_obj in self.files.values() if isinstance(file_obj, FortranFile)]
+        for subdir in self.subdirectories.values():
+            fortran_files += subdir.get_all_fortran_files()
+
+        return fortran_files
 
     def _name_is_taken(self, name: str) -> bool:
         """Checks for the existence of a given name in the directory."""
