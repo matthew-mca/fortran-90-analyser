@@ -1,7 +1,7 @@
 import pytest
 
 from code_data_models.code_pattern import CodePattern
-from parsers.code_parser_stack import CodeParserStack, CodeParserStackItem
+from parsers.code_parser_stack import CodeParserStack, CodeParserStackItem, EmptyStackError
 
 
 class TestCodeParserStack:
@@ -46,3 +46,10 @@ class TestCodeParserStack:
     def test_code_parser_stack_repr(self, empty_stack):
         expected_repr = "CodeParserStack(item_count=0)"
         assert repr(empty_stack) == expected_repr
+
+    def test_pop_empty_stack(self, empty_stack):
+        with pytest.raises(EmptyStackError):
+            empty_stack.pop()
+
+    def test_peek_empty_stack(self, empty_stack):
+        assert empty_stack.peek() == (None, None)
