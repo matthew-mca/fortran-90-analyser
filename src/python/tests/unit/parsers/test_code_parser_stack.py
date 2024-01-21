@@ -24,11 +24,11 @@ class TestCodeParserStack:
     def test_peek(self, empty_stack):
         assert empty_stack.size() == 0
 
-        empty_stack.push(CodePattern.COMMENT, 5)
+        empty_stack.push(CodePattern.PROGRAM, 5)
         assert empty_stack.size() == 1
 
         item_1, item_2 = empty_stack.peek()
-        assert item_1 == CodePattern.COMMENT and item_2 == 5
+        assert item_1 == CodePattern.PROGRAM and item_2 == 5
         assert empty_stack.size() == 1
 
     def test_is_empty(self, empty_stack):

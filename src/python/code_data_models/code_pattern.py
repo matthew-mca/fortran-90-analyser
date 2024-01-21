@@ -14,7 +14,6 @@ ALL_RETURN_TYPES = "|".join(
 class CodePattern:
     """The names of all the types of Fortran code blocks we want to parse in this project."""
 
-    COMMENT = "COMMENT"
     END = "END"
     FUNCTION = "FUNCTION"
     FUNCTION_END = "FUNCTION_END"
@@ -32,9 +31,6 @@ class CodePattern:
 
 class CodePatternRegex:
     """The regex patterns for all the types of Fortran code blocks we want to parse in this project."""
-
-    # COMMENT = r"^.*!.*$"
-    # TODO: May have to just parse comments without regex...
 
     FUNCTION = (  # This is one monstrous regex...
         rf"^([\w\W]*;)?\s*"
