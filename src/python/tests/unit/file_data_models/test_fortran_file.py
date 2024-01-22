@@ -106,3 +106,15 @@ class TestFortranFile:
         assert len(empty_fortran_file) == 0
         assert len(hello_world_file) == 3
         assert len(semicolon_file) == 1
+
+    def test_split_statements(self, fortran_with_semicolons):
+        # Unlike the other semicolons, the semicolon
+        # in the comment should not result in a new line.
+        fortran_with_semicolons[0] += " ! This is a comment; with a semicolon"
+        test_f90_file = FortranFile("semicolon_file", fortran_with_semicolons)
+
+        assert len(test_f90_file.contents) == 3
+
+        retrieved_end_line = test_f90_file.contents[-1]
+        expected_end_line = "END PROGRAM test_program ! This is a comment; with a semicolon"
+        assert retrieved_end_line.content == expected_end_line

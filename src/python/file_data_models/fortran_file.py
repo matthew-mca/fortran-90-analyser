@@ -6,6 +6,7 @@ from code_data_models.code_pattern import CodePattern, CodePatternRegex
 from code_data_models.code_statement import CodeStatement
 from parsers.code_parser import CodeParser
 from parsers.code_parser_stack import CodeParserStack
+from utils.comment_finder import find_comment
 from utils.repr_builder import build_repr_from_attributes
 
 from .digital_file import DigitalFile
@@ -33,7 +34,7 @@ class FortranFile(DigitalFile):
         self.contents: List[CodeStatement] = []
         for index, line in enumerate(contents):
             # This stops several commands on one line being counted as a single statement
-            all_statements = [statement.strip() for statement in line.split(";")]
+            all_statements = self._split_statements(line)
 
             for statement in all_statements:
                 # Line numbers in almost all editors start at 1, hence the increment of index here
@@ -121,6 +122,20 @@ class FortranFile(DigitalFile):
         # as it's not syntactically correct otherwise... not sure if in here or in the code parser though.
         # Edit: should probably add individual quirks for each code block as checks in their respective
         # child classes. Or in the respective functions in the parser...
+
+    def _split_statements(self, line: str) -> List[str]:
+        """Splits a string of statements separated by semicolons into a list."""
+
+        # We will remove comments, split the line using ";", and then add the comment back.
+        # This is to avoid any comments getting unnecessarily split.
+        comment = find_comment(line)
+        if comment:
+            line = line.replace(comment, "")
+
+        statement_list = line.split(";")
+        statement_list[-1] += comment or ""
+
+        return [line.strip() for line in statement_list]
 
     def __repr__(self) -> str:
         return build_repr_from_attributes(
