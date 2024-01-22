@@ -74,9 +74,12 @@ class TestFortranFile:
         assert len(hello_world_file.components) == 1
         assert isinstance(hello_world_file.components[0], FortranProgram)
 
-    def test_fortran_file_repr(self, hello_world_file):
+    def test_fortran_file_repr(self, hello_world_file, semicolon_file):
         expected_repr = "FortranFile(file_name='hello_world_file', lines_of_code=3, code_blocks=1)"
         assert repr(hello_world_file) == expected_repr
+
+        expected_repr = "FortranFile(file_name='semicolon_file', lines_of_code=1, code_blocks=1)"
+        assert repr(semicolon_file) == expected_repr
 
     def test_parse_statements_with_semicolons(self, fortran_with_semicolons):
         test_f90_file = FortranFile("semicolon_file", fortran_with_semicolons)

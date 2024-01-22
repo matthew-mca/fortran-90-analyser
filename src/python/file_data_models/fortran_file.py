@@ -141,7 +141,7 @@ class FortranFile(DigitalFile):
         return build_repr_from_attributes(
             class_name=type(self).__name__,
             file_name=self.file_name,
-            lines_of_code=len(self.contents),
+            lines_of_code=len(self),
             code_blocks=len(self.components),
         )
 
