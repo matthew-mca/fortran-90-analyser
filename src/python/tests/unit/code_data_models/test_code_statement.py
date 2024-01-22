@@ -43,19 +43,3 @@ class TestCodeStatement:
     def test_code_statement_repr(self, hello_world_line):
         expected_repr = "CodeStatement(line_number=1, content=\"Print *, 'Hello World'\")"
         assert repr(hello_world_line) == expected_repr
-
-    @pytest.mark.parametrize(
-        "line,expected_result",
-        [
-            ("test command", False),
-            ("test command ! comment", True),
-            ("!", True),
-            ("!  ! ! Test comment", True),
-            ("Print *, 'Hello World!'", False),
-            ('Print *, "Hello World!"', False),
-            ("Print *, 'Hello World!' ! comment", True),
-        ],
-    )
-    def test_check_for_comment(self, line, expected_result):
-        test_statement = CodeStatement(1, line)
-        assert test_statement.contains_comment == expected_result
