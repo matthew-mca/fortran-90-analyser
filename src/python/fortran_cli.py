@@ -65,6 +65,7 @@ def get_summary(code_path: str) -> None:
         fortran_files = [parser.parse_file(code_path)]
 
     fortran_file_count = len(fortran_files)
+    comment_count = 0
     function_count = 0
     interface_count = 0
     module_count = 0
@@ -73,6 +74,8 @@ def get_summary(code_path: str) -> None:
     type_count = 0
 
     for f90_file in fortran_files:
+        comment_count += len([line for line in f90_file.contents if line.contains_comment])
+
         for component in f90_file.components:
             if isinstance(component, FortranFunction):
                 function_count += 1
@@ -96,6 +99,7 @@ def get_summary(code_path: str) -> None:
     click.echo(f"# of Programs: {program_count}")
     click.echo(f"# of Subroutines: {subroutine_count}")
     click.echo(f"# of Derived Types: {type_count}")
+    click.echo(f"# of lines with comments: {comment_count}")
 
 
 if __name__ == "__main__":

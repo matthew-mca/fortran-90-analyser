@@ -1,5 +1,6 @@
 from typing import List
 
+from utils.comment_finder import find_comment
 from utils.repr_builder import build_repr_from_attributes
 
 from .code_pattern import CodePattern
@@ -14,6 +15,7 @@ class CodeStatement:
           same line number.
         content: The string contents of the statement.
         matched_patterns: A list of CodePatterns that the statement could possibly be.
+        contains_comment: Whether or the statement includes a code comment.
     """
 
     def __init__(self, line_number: int, content: str) -> None:
@@ -28,6 +30,7 @@ class CodeStatement:
         self.line_number: int = line_number
         self.content: str = content
         self.matched_patterns: List[CodePattern] = []
+        self.contains_comment: bool = find_comment(content) is not None
 
     def add_pattern(self, pattern_type: CodePattern) -> None:
         """Adds a code pattern into the list of matched patterns for the statement.

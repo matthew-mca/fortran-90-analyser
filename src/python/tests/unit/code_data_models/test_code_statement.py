@@ -22,19 +22,19 @@ class TestCodeStatement:
         assert test_code_statement.matched_patterns == []
 
     def test_add_pattern(self, hello_world_line):
-        hello_world_line.add_pattern(CodePattern.COMMENT)
+        hello_world_line.add_pattern(CodePattern.PROGRAM)
 
-        assert hello_world_line.matched_patterns == [CodePattern.COMMENT]
+        assert hello_world_line.matched_patterns == [CodePattern.PROGRAM]
 
     def test_has_matched_patterns(self, hello_world_line):
         assert hello_world_line.has_matched_patterns() is False
-        hello_world_line.add_pattern(CodePattern.COMMENT)
+        hello_world_line.add_pattern(CodePattern.PROGRAM)
         assert hello_world_line.has_matched_patterns() is True
 
     def test_is_end_statement(self, hello_world_line):
         assert hello_world_line.is_end_statement() is False
 
-        hello_world_line.add_pattern(CodePattern.COMMENT)
+        hello_world_line.add_pattern(CodePattern.FUNCTION)
         assert hello_world_line.is_end_statement() is False
 
         hello_world_line.add_pattern(CodePattern.FUNCTION_END)
