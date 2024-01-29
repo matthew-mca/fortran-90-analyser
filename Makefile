@@ -14,6 +14,14 @@ lint:
 test:
 	@coverage run -m pytest
 
+.PHONY: test-integration
+test-integration:
+	@coverage run -m pytest src/python/tests/integration
+
+.PHONY: test-unit
+test-unit:
+	@coverage run -m pytest src/python/tests/unit
+
 .PHONY: test-with-coverage
 test-with-coverage:
 	@coverage run -m pytest
