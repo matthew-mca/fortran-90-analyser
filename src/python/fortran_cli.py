@@ -99,7 +99,7 @@ def get_summary(code_path: str) -> None:
     click.echo(f"# of Programs: {program_count}")
     click.echo(f"# of Subroutines: {subroutine_count}")
     click.echo(f"# of Derived Types: {type_count}")
-    click.echo(f"# of lines with comments: {comment_count}")
+    click.echo(f"# of Comments: {comment_count}")
 
 
 if __name__ == "__main__":
