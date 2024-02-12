@@ -8,18 +8,18 @@ def build_repr_from_object(target_object: Any) -> str:
         target_object: The object to look at when building the string.
     """
 
-    class_name = type(target_object).__name__
-
-    return build_repr_from_attributes(class_name, **vars(target_object))
+    return build_repr_from_attributes(target_object, **vars(target_object))
 
 
-def build_repr_from_attributes(class_name: str, **kwargs: Any) -> str:
+def build_repr_from_attributes(target_object: Any, **kwargs: Any) -> str:
     """Builds a string from a provided class name and list of attributes.
 
     Args:
         class_name: The name of the class that will use the string.
         **kwargs: The names and values of the attributes to include in the string.
     """
+
+    class_name = type(target_object).__name__
 
     attributes = []
     for attribute, attr_value in kwargs.items():

@@ -10,18 +10,29 @@ class ReprTestObject:
 
 
 class TestReprBuilder:
-    def test_build_repr_from_object(self):
-        test_object = ReprTestObject("string_field", False)
+    @pytest.fixture
+    def test_object(self):
+        return ReprTestObject("string_field", False)
+
+    def test_build_repr_from_object(self, test_object):
         test_object_string = build_repr_from_object(test_object)
 
         assert test_object_string == "ReprTestObject(test_field1='string_field', test_field2=False)"
 
-    @pytest.mark.parametrize(
-        "class_name,attributes,expected_string",
-        [
-            ("TestClass", {"name": "test_object"}, "TestClass(name='test_object')"),
-            ("OtherClass", {"test_name": "object", "number": 0}, "OtherClass(test_name='object', number=0)"),
-        ],
-    )
-    def test_build_repr_from_attributes(self, class_name, attributes, expected_string):
-        assert build_repr_from_attributes(class_name, **attributes) == expected_string
+    def test_build_repr_from_attributes(self, test_object):
+        expected_repr = "ReprTestObject(manual_field_name=1)"
+        actual_repr = build_repr_from_attributes(
+            test_object,
+            manual_field_name=1,
+        )
+
+        assert expected_repr == actual_repr
+
+        expected_repr = "ReprTestObject(string_field='string_field', bool_field=False)"
+        actual_repr = build_repr_from_attributes(
+            test_object,
+            string_field=test_object.test_field1,
+            bool_field=test_object.test_field2,
+        )
+
+        assert expected_repr == actual_repr

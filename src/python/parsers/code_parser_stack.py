@@ -98,6 +98,6 @@ class CodeParserStack:
 
     def __repr__(self) -> str:
         return build_repr_from_attributes(
-            class_name=type(self).__name__,
+            target_object=self,
             item_count=self.size(),
         )

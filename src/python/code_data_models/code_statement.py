@@ -63,7 +63,7 @@ class CodeStatement:
 
     def __repr__(self) -> str:
         return build_repr_from_attributes(
-            class_name=type(self).__name__,
+            target_object=self,
             line_number=self.line_number,
             content=self.content,
         )

@@ -38,7 +38,7 @@ class CodeBlock(ABC):
 
     def __repr__(self) -> str:
         return build_repr_from_attributes(
-            class_name=type(self).__name__,
+            target_object=self,
             lines_of_code=len(self),
         )
 

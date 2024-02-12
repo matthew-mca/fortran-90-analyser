@@ -108,7 +108,7 @@ class Directory:
 
     def __repr__(self) -> str:
         return build_repr_from_attributes(
-            class_name=type(self).__name__,
+            target_object=self,
             name=self.name,
             files=len(self.files),
             subdirectories=len(self.subdirectories),
