@@ -8,6 +8,15 @@ supervision of [Professor Austen Rainer](https://pure.qub.ac.uk/en/persons/auste
 goal of the project is to be able to parse Fortran 90 files or entire codebases and report back
 metrics to the user about their code.
 
+## Table of Contents
+
+- [Installation](https://gitlab.eeecs.qub.ac.uk/40291992/fortran-90-analyser#installation)
+- [Usage](https://gitlab.eeecs.qub.ac.uk/40291992/fortran-90-analyser#usage)
+- [Roadmap](https://gitlab.eeecs.qub.ac.uk/40291992/fortran-90-analyser#roadmap)
+- [Contributing](https://gitlab.eeecs.qub.ac.uk/40291992/fortran-90-analyser#contributing)
+- [Support](https://gitlab.eeecs.qub.ac.uk/40291992/fortran-90-analyser#support)
+- [Acknowledgements](https://gitlab.eeecs.qub.ac.uk/40291992/fortran-90-analyser#acknowledgements)
+
 ## Installation
 
 Currently, the project installation is simply
@@ -137,4 +146,4 @@ These repositories allow for testing of the application on *real Fortran code*, 
 
 **Project Owner:** *[Matthew McAteer](https://github.com/matthew-mca)*
 
-**Last Updated:** *29/01/2024*
+**Last Updated:** *12/02/2024*
