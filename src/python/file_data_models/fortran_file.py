@@ -4,7 +4,12 @@ from typing import Iterable, List
 from code_data_models.code_block import CodeBlock
 from code_data_models.code_pattern import CodePattern, CodePatternRegex
 from code_data_models.code_statement import CodeStatement
-from parsers.code_parser import CodeParser
+from code_data_models.fortran_function import FortranFunction
+from code_data_models.fortran_interface import FortranInterface
+from code_data_models.fortran_module import FortranModule
+from code_data_models.fortran_program import FortranProgram
+from code_data_models.fortran_subroutine import FortranSubroutine
+from code_data_models.fortran_type import FortranType
 from parsers.code_parser_stack import CodeParserStack
 from utils.comment_finder import find_comment
 from utils.repr_builder import build_repr_from_attributes
@@ -16,20 +21,22 @@ class FortranFile(DigitalFile):
     """A file with the .f90 extension. Stores Fortran 90 code.
 
     Attributes:
-        file_name: The name of the file.
+        path_from_root: The path to the file, starting from the root of
+          the codebase.
         contents: A list of all the lines of code in the file.
         components: The detected code blocks that make up the file.
     """
 
-    def __init__(self, file_name: str, contents: Iterable[str] = []) -> None:
+    def __init__(self, path_from_root: str, contents: Iterable[str] = []) -> None:
         """Initialises a file object, and then tags and parses its contents.
 
         Args:
-            file_name: The name of the file.
+            path_from_root: The path to the file, starting from the root
+              of the codebase.
             contents: The lines of code that make up the file.
         """
 
-        super().__init__(file_name)
+        super().__init__(path_from_root)
 
         self.contents: List[CodeStatement] = []
         for index, line in enumerate(contents):
@@ -40,6 +47,10 @@ class FortranFile(DigitalFile):
                 # Line numbers in almost all editors start at 1, hence the increment of index here
                 self.contents.append(CodeStatement((index + 1), statement))
 
+        # TODO: These three lines might be cleaner if they are
+        # refactored so that 'components' is equal to the return value
+        # of _parse_code_blocks, and _tag_lines() is called as part of
+        # it. Or maybe even combine the two?
         self.components: List[CodeBlock] = []
         self._tag_lines()
         self._parse_code_blocks()
@@ -100,8 +111,15 @@ class FortranFile(DigitalFile):
     def _parse_code_blocks(self) -> None:
         """Analyses the tagged lines in the file and creates code block objects."""
 
-        parser = CodeParser()
         stack = CodeParserStack()
+        all_code_block_types = {
+            CodePattern.FUNCTION: FortranFunction,
+            CodePattern.INTERFACE: FortranInterface,
+            CodePattern.MODULE: FortranModule,
+            CodePattern.PROGRAM: FortranProgram,
+            CodePattern.SUBROUTINE: FortranSubroutine,
+            CodePattern.TYPE: FortranType,
+        }
 
         for line in self.contents:
             if not line.has_matched_patterns():
@@ -113,15 +131,10 @@ class FortranFile(DigitalFile):
             if line.is_end_statement():
                 block_type, start_line = stack.pop()
                 block_contents = self.get_snippet(start_line, line.line_number)
-                self.components.append(parser.build_code_block_object(block_type, block_contents))
+                new_block_type = all_code_block_types[block_type]
+                self.components.append(new_block_type(self.path_from_root, block_contents))
 
         assert stack.is_empty()  # A non-empty stack means a code block has not been resolved somewhere
-
-        # TODO: Should probably think about adding some sort of check that any END statements that
-        # include the name of a function/program/module etc match up with the name in the declaration,
-        # as it's not syntactically correct otherwise... not sure if in here or in the code parser though.
-        # Edit: should probably add individual quirks for each code block as checks in their respective
-        # child classes. Or in the respective functions in the parser...
 
     def _split_statements(self, line: str) -> List[str]:
         """Splits a string of statements separated by semicolons into a list."""

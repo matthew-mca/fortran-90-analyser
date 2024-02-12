@@ -7,8 +7,11 @@ print-to-console: Prints the raw contents of a specified file.
     file-path: The full path to the file you wish to print to the console.
 get-summary: Prints out a count of the different types of code blocks found in a file/codebase.
     code-path: The full path to the codebase/file you wish to parse.
-
+list-all-variables: Prints a list of all Fortran files, the code blocks
+they contain, and the variables those code blocks contain.
+    code-path: The full path to the codebase/file you wish to parse.
 """
+
 import os
 
 import click
@@ -100,6 +103,36 @@ def get_summary(code_path: str) -> None:
     click.echo(f"# of Subroutines: {subroutine_count}")
     click.echo(f"# of Derived Types: {type_count}")
     click.echo(f"# of Comments: {comment_count}")
+
+
+@cli.command()
+@click.option(
+    "--code-path",
+    required=True,
+    prompt=True,
+    help="The full path to the codebase/file you wish to parse.",
+)
+def list_all_variables(code_path: str) -> None:
+    if not os.path.exists(code_path):
+        click.echo("There was an error getting metrics: path is not valid.")
+        return
+
+    parser = FileParser()
+    if os.path.isdir(code_path):
+        codebase = parser.build_directory_tree(code_path)
+        fortran_files = codebase.get_all_fortran_files()
+    else:
+        fortran_files = [parser.parse_file(code_path)]
+
+    for f90_file in fortran_files:
+        click.echo(f90_file.path_from_root)
+        for component in f90_file.components:
+            if hasattr(component, "variables"):
+                click.echo(f"\t{type(component).__name__} '{component.block_name}'")
+                for variable in component.variables:
+                    click.echo(f"\t\t{variable.data_type} '{variable.name}' declared on line {variable.line_declared};")
+
+                click.echo()
 
 
 if __name__ == "__main__":

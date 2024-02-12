@@ -1,14 +1,8 @@
-ALL_RETURN_TYPES = "|".join(
-    [
-        "CHARACTER",
-        "COMPLEX",
-        "DOUBLE[ \\t]+COMPLEX",  # This [ \\t]+ gives us the option of one or MORE spaces in our regex between words
-        "DOUBLE[ \\t]+PRECISION",
-        "INTEGER",
-        "LOGICAL",
-        "REAL",
-    ]
-)
+from code_data_models.variable import Variable
+
+# Replacing the whitespaces in the Fortran data types with [ \\t]+
+# gives us the option of one or MORE spaces in our regex between words
+ALL_RETURN_TYPES = "|".join([data_type.replace(" ", "[ \\t]+") for data_type in Variable.ALL_DATA_TYPES])
 
 
 class CodePattern:
@@ -29,6 +23,8 @@ class CodePattern:
     TYPE_END = "TYPE_END"
 
 
+# TODO: With the line splitting logic now present in our parsing, are the
+# start and end portions of each regex that allow for semicolons even needed anymore?
 class CodePatternRegex:
     """The regex patterns for all the types of Fortran code blocks we want to parse in this project."""
 
@@ -49,3 +45,9 @@ class CodePatternRegex:
     SUBROUTINE_END = r"^([\w\W]*;)?\s*END[ \t]*SUBROUTINE([ \t]+\w+)?\s*(;[\w\W]*)?(!.*)?$"
     TYPE = r"^([\w\W]*;)?\s*TYPE[ \t]+\w+\s*(;[\w\W]*)?(!.*)?$"
     TYPE_END = r"^([\w\W]*;)?\s*END[ \t]*TYPE([ \t]+\w+)?\s*(;[\w\W]*)?(!.*)?$"
+    VARIABLE_DECLARATION = (
+        rf"^([\w\W]*;)?\s*"
+        rf"({ALL_RETURN_TYPES}|TYPE\(.*\)).*::\s*\w{{1,31}}(\(\d+\))?(\*\d+)?(\s*=.*)?"
+        rf"(,\s*\w{{1,31}}(\(\d+\))?(\*\d+)?(\s*=.*)?)*"
+        rf"\s*(;[\w\W]*)?(!.*)?$"
+    )

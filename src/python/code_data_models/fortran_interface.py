@@ -8,10 +8,12 @@ class FortranInterface(CodeBlock):
     """A Fortran 90 interface.
 
     Attributes:
+        parent_file_path: The path to the Fortran 90 file the interface
+          is in.
         contents: The lines of code that make up the interface.
     """
 
-    def __init__(self, contents: List[CodeStatement]) -> None:
+    def __init__(self, parent_file_path: str, contents: List[CodeStatement]) -> None:
         """Initialises an interface object."""
 
-        super().__init__(contents)
+        super().__init__(parent_file_path, contents)

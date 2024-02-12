@@ -243,3 +243,28 @@ class TestCodePatternRegex:
     )
     def test_interface_end(self, string, expect_match):
         self.assert_regex_result(CodePatternRegex.INTERFACE_END, string, expect_match)
+
+    @pytest.mark.parametrize(
+        "string,expect_match",
+        [
+            ("real, intent(in) :: test_real1, test_real2", True),
+            ("Complex , intent(inout) :: test_complex", True),
+            ("DOUBLE   PRECISION, INTENT(OUT) :: var_double = 3.45", True),
+            ("CHARACTER :: test_int", True),
+            ("LOGICAL test_log", False),
+            ("type(test_type) :: type_object", True),
+            ("INTEGER :: daysinyear=365, monthsinyear=12, weeksinyear=52", True),
+            ("CHARACTER :: test_string='hello world'", True),
+            ("DOUBLE COMPLEX :: this_variable_name_exceeds_31_characters", False),
+            ("CHARACTER(LEN=1)  :: letter, digit", True),
+            ("CHARACTER(1)      :: letter, digit", True),
+            ("CHARACTER         :: letter, digit", True),
+            ("CHARACTER(LEN=10) :: City, Nation*20, BOX, bug*1", True),
+            ("CHARACTER(LEN=*) :: Title, Position", True),
+            ("integer(i8), dimension(n) :: f", True),
+            ("integer, dimension(5) :: array", True),
+            ("real :: array(5)", True),
+        ],
+    )
+    def test_variable_declaration(self, string, expect_match):
+        self.assert_regex_result(CodePatternRegex.VARIABLE_DECLARATION, string, expect_match)
