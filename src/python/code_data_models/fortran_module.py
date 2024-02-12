@@ -8,10 +8,16 @@ class FortranModule(CodeBlock):
     """A Fortran 90 module.
 
     Attributes:
+        parent_file_path: The path to the Fortran 90 file the module
+          is in.
         contents: The lines of code that make up the module.
+        block_name: The name given to the module.
+        variables: A list of all the variables in the module.
     """
 
-    def __init__(self, contents: List[CodeStatement]) -> None:
+    def __init__(self, parent_file_path: str, contents: List[CodeStatement]) -> None:
         """Initialises a module object."""
 
-        super().__init__(contents)
+        super().__init__(parent_file_path, contents)
+        self.block_name = self._find_block_name("MODULE")
+        self.variables = self._find_variable_declarations()

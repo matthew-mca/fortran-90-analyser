@@ -6,26 +6,28 @@ from file_data_models.directory import Directory
 from file_data_models.fortran_file import FortranFile
 
 
+# TODO: Check that any working with file paths is safe for any OS
 class FileParser:
     """Parses the content of files and directories."""
 
-    def parse_file(self, file_path: str) -> Union[DigitalFile, FortranFile]:
+    def parse_file(self, file_path: str, root_dir_path: str) -> Union[DigitalFile, FortranFile]:
         """Parses a file at a specified path and returns it as an object.
 
         Args:
             file_path: The path to the file.
+            root_dir_path: The path to the root of the codebase being
+              parsed.
 
         Returns:
             A file object. If the file is a Fortran file, its contents are also included.
         """
 
-        file_name = file_path.split("/")[-1]
-
-        if not self.is_f90_file(file_name):
-            return DigitalFile(file_name)
+        path_from_root_dir = file_path.replace(f"{root_dir_path}/", "")
+        if not self.is_f90_file(file_path):
+            return DigitalFile(path_from_root_dir)
         else:
             file_contents = self.parse_file_contents(file_path)
-            return FortranFile(file_name, file_contents)
+            return FortranFile(path_from_root_dir, file_contents)
 
     def parse_file_contents(self, file_path: str) -> Generator[str, None, None]:
         """Parses the contents of the file at the specified path and yields its contents line by line.
@@ -70,7 +72,8 @@ class FileParser:
         elif os.path.isfile(dir_path):
             raise ValueError("Specified path is a file, not a directory.")
 
-        root_dir_name = dir_path.split("/")[-1]
+        # TODO: This logic will fall over if the user provides a dir path ending in a slash
+        root_dir_name = os.path.split(dir_path)[1]
         directory_tree: Directory = Directory(root_dir_name)
         current = directory_tree  # We will use current to build the inner dicts within the tree
 
@@ -91,19 +94,19 @@ class FileParser:
 
             for file_name in files:
                 if self.is_f90_file(file_name) or include_non_fortran:
-                    new_file = self.parse_file(f"{root}/{file_name}")
+                    new_file = self.parse_file(f"{root}/{file_name}", dir_path)
                     current.add_file(new_file)
 
         return directory_tree
 
-    def is_f90_file(self, file_name: str) -> bool:
+    def is_f90_file(self, file_path: str) -> bool:
         """Checks if a given file is a Fortran 90 file.
 
         Args:
-            file_name: The name of the file.
+            file_path: The path to the file.
 
         Returns:
             A boolean that is True if the file has a .f90 extension, otherwise False.
         """
 
-        return file_name.endswith(".f90")
+        return file_path.endswith(".f90")

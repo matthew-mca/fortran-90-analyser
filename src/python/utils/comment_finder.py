@@ -29,3 +29,20 @@ def find_comment(line: str) -> Optional[str]:
             return line[i:]  # Reaching here means we found an exclamation mark outside quotes
 
     return None
+
+
+def remove_comment_from_line(line: str) -> str:
+    """Removes comments from a line (if any).
+
+    Args:
+        line: The line of code to remove comments from.
+
+    Returns:
+        The provided line with any comments removed. If the line did not
+        have a comment to begin with, the same line is returned.
+    """
+
+    if comment := find_comment(line):
+        line = line.replace(comment, "")
+
+    return line
