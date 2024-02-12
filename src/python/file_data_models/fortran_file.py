@@ -47,13 +47,7 @@ class FortranFile(DigitalFile):
                 # Line numbers in almost all editors start at 1, hence the increment of index here
                 self.contents.append(CodeStatement((index + 1), statement))
 
-        # TODO: These three lines might be cleaner if they are
-        # refactored so that 'components' is equal to the return value
-        # of _parse_code_blocks, and _tag_lines() is called as part of
-        # it. Or maybe even combine the two?
-        self.components: List[CodeBlock] = []
-        self._tag_lines()
-        self._parse_code_blocks()
+        self.components: List[CodeBlock] = self._parse_code_blocks()
 
     def get_snippet(self, start_line: int, end_line: int) -> List[CodeStatement]:
         """Returns a slice of the file's contents.
@@ -85,8 +79,8 @@ class FortranFile(DigitalFile):
 
         return statements_in_range
 
-    def _tag_lines(self) -> None:
-        """Iterates through the file and tags each line with the possible patterns it could be."""
+    def _parse_code_blocks(self) -> List[CodeBlock]:
+        """Analyses the lines in the file and creates code block objects."""
 
         code_patterns = [
             (CodePattern.FUNCTION, CodePatternRegex.FUNCTION),
@@ -108,9 +102,6 @@ class FortranFile(DigitalFile):
                 if re.match(pattern_regex, line.content, re.IGNORECASE):
                     line.add_pattern(pattern)
 
-    def _parse_code_blocks(self) -> None:
-        """Analyses the tagged lines in the file and creates code block objects."""
-
         stack = CodeParserStack()
         all_code_block_types = {
             CodePattern.FUNCTION: FortranFunction,
@@ -120,6 +111,8 @@ class FortranFile(DigitalFile):
             CodePattern.SUBROUTINE: FortranSubroutine,
             CodePattern.TYPE: FortranType,
         }
+
+        found_components = []
 
         for line in self.contents:
             if not line.has_matched_patterns():
@@ -132,9 +125,10 @@ class FortranFile(DigitalFile):
                 block_type, start_line = stack.pop()
                 block_contents = self.get_snippet(start_line, line.line_number)
                 new_block_type = all_code_block_types[block_type]
-                self.components.append(new_block_type(self.path_from_root, block_contents))
+                found_components.append(new_block_type(self.path_from_root, block_contents))
 
-        assert stack.is_empty()  # A non-empty stack means a code block has not been resolved somewhere
+        assert stack.is_empty()
+        return found_components  # A non-empty stack means a code block has not been resolved somewhere
 
     def _split_statements(self, line: str) -> List[str]:
         """Splits a string of statements separated by semicolons into a list."""
