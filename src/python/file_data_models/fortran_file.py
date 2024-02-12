@@ -152,7 +152,7 @@ class FortranFile(DigitalFile):
 
     def __repr__(self) -> str:
         return build_repr_from_attributes(
-            class_name=type(self).__name__,
+            target_object=self,
             file_name=self.file_name,
             lines_of_code=len(self),
             code_blocks=len(self.components),
