@@ -125,7 +125,8 @@ Please be mindful to follow the template provided in the issue description.
 ## Acknowledgements
 
 This project would not be possible without the help of
-[Professor Austen Rainer](https://pure.qub.ac.uk/en/persons/austen-rainer). His guidance and support
+[Professor Austen Rainer](https://pure.qub.ac.uk/en/persons/austen-rainer) and
+[Doctor David Cutting](https://pure.qub.ac.uk/en/persons/david-cutting). Their guidance and support
 have been and continue to be instrumental in the development of this code analyser.
 
 I would also like to extend a thanks to the entirety of the InsightCloudSec team in Rapid7. The 15
