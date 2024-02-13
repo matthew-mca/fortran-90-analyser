@@ -1,6 +1,7 @@
 -c requirements.txt
 black==23.9.1
 coverage==7.3.2
+Faker==23.1.0
 flake8==6.1.0
 isort==5.13.2
 mypy==1.6.0
