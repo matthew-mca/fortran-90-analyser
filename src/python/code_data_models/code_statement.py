@@ -10,12 +10,14 @@ class CodeStatement:
     """A single Fortran instruction.
 
     Attributes:
-        line_number: The line number of the code statement in its parent file.
-          Statements on the same line separated by semicolons will have the
-          same line number.
+        line_number: The line number of the code statement in its parent
+          file. Statements on the same line separated by semicolons will
+          have the same line number.
         content: The string contents of the statement.
-        matched_patterns: A list of CodePatterns that the statement could possibly be.
-        contains_comment: Whether or the statement includes a code comment.
+        matched_patterns: A list of CodePatterns that the statement
+          could possibly be.
+        contains_comment: Whether or not the statement includes a code
+          comment.
     """
 
     def __init__(self, line_number: int, content: str) -> None:
@@ -33,7 +35,7 @@ class CodeStatement:
         self.contains_comment: bool = find_comment(content) is not None
 
     def add_pattern(self, pattern_type: CodePattern) -> None:
-        """Adds a code pattern into the list of matched patterns for the statement.
+        """Adds a code pattern to the statement's matched patterns.
 
         Args:
             pattern_type: The code pattern that the statement matches.
@@ -42,21 +44,21 @@ class CodeStatement:
         self.matched_patterns.append(pattern_type)
 
     def has_matched_patterns(self) -> bool:
-        """Checks if the statement has matched any Fortran code patterns.
+        """Checks if the statement matches any Fortran code patterns.
 
         Returns:
-            A boolean that is True when there is at least one pattern matched for
-            the statement, otherwise False.
+            A boolean that is True when there is at least one pattern
+            matched for the statement, otherwise False.
         """
 
         return len(self.matched_patterns) > 0
 
     def is_end_statement(self) -> bool:
-        """Checks if the statement has matched any Fortran END statements.
+        """Checks if the statement matches any Fortran END statements.
 
         Returns:
-            A boolean that is True when there is at least one END pattern matched for
-            the statement, otherwise False.
+            A boolean that is True when there is at least one END
+            pattern matched for the statement, otherwise False.
         """
 
         return any(CodePattern.END in pattern for pattern in self.matched_patterns)  # type: ignore[operator]

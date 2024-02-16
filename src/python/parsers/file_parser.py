@@ -11,7 +11,7 @@ class FileParser:
     """Parses the content of files and directories."""
 
     def parse_file(self, file_path: str, root_dir_path: str) -> Union[DigitalFile, FortranFile]:
-        """Parses a file at a specified path and returns it as an object.
+        """Parses a file at a given path and returns it as an object.
 
         Args:
             file_path: The path to the file.
@@ -19,7 +19,8 @@ class FileParser:
               parsed.
 
         Returns:
-            A file object. If the file is a Fortran file, its contents are also included.
+            A file object. If the file is a Fortran file, its contents
+            are also included.
         """
 
         path_from_root_dir = file_path.replace(f"{root_dir_path}/", "")
@@ -30,7 +31,10 @@ class FileParser:
             return FortranFile(path_from_root_dir, file_contents)
 
     def parse_file_contents(self, file_path: str) -> Generator[str, None, None]:
-        """Parses the contents of the file at the specified path and yields its contents line by line.
+        """Parses the contents of the file.
+
+        Parses the contents of the file, and then yields the contents
+        line by line.
 
         Args:
             file_path: The path to the file.
@@ -54,15 +58,16 @@ class FileParser:
 
         Args:
             dir_path: The path to the directory.
-            include_non_fortran: A flag that determines whether any non-Fortran file objects are
-              included in the final result.
+            include_non_fortran: A flag that determines whether any
+              non-Fortran file objects are included in the final result.
 
         Returns:
-            A directory populated with all the files and subdirectories of the directory the provided
-            path points to.
+            A directory populated with all the files and subdirectories
+            of the directory the provided path points to.
 
         Raises:
-            ValueError: The given path did not exist, or pointed to a file rather than a directory.
+            ValueError: The given path did not exist, or pointed to a
+              file rather than a directory.
         """
 
         dir_path = os.path.abspath(dir_path)  # Will resolve relative paths and leave absolute paths as is
@@ -72,7 +77,8 @@ class FileParser:
         elif os.path.isfile(dir_path):
             raise ValueError("Specified path is a file, not a directory.")
 
-        # TODO: This logic will fall over if the user provides a dir path ending in a slash
+        # TODO: This logic will fall over if the user provides a dir
+        # path ending in a slash
         root_dir_name = os.path.split(dir_path)[1]
         directory_tree: Directory = Directory(root_dir_name)
         current = directory_tree  # We will use current to build the inner dicts within the tree
@@ -80,11 +86,14 @@ class FileParser:
         for root, dirs, files in os.walk(dir_path):
             working_dir_path = root.replace(dir_path, "")
 
-            # By comparing the path to the directory we started in with the path to where we are now,
-            # we can navigate to the correct part of the tree to populate the next batch of files.
+            # By comparing the path to the directory we started in with
+            # the path to where we are now, we can navigate to the
+            # correct part of the tree to populate the next batch of
+            # files.
             if working_dir_path:
                 current = directory_tree
-                # We do not include the first item as it's an empty string
+                # We do not include the first item as it's an empty
+                # string
                 for level in working_dir_path.split("/")[1:]:
                     current = current.get_item(level)  # type: ignore[assignment]
 
@@ -106,7 +115,8 @@ class FileParser:
             file_path: The path to the file.
 
         Returns:
-            A boolean that is True if the file has a .f90 extension, otherwise False.
+            A boolean that is True if the file has a .f90 extension,
+            otherwise False.
         """
 
         return file_path.endswith(".f90")

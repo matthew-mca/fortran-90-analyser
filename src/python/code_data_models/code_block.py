@@ -13,10 +13,11 @@ from .variable import Variable
 class CodeBlock(ABC):
     """A logical grouping of lines of Fortran 90 code.
 
-    This class is used as an abstract base for all the different types of blocks in Fortran 90.
-    That way, we can include any attributes/behaviours that apply to every single type of Fortran 90
-    code block in this class. Any and all code blocks that become supported in the application should
-    inherit from this class.
+    This class is used as an abstract base for all the different types
+    of blocks in Fortran 90. That way, we can include any
+    attributes/behaviours that apply to every single type of Fortran 90
+    code block in this class. Any and all code blocks that become
+    supported in the application should inherit from this class.
 
     Attributes:
         parent_file_path: The path to the Fortran 90 file the code block
@@ -26,10 +27,11 @@ class CodeBlock(ABC):
 
     @abstractmethod
     def __init__(self, parent_file_path: str, contents: List[CodeStatement]) -> None:
-        """Initialises a code block containing the provided lines of code.
+        """Initialises a code block.
 
         Args:
-            parent_file_path: The path to the Fortran 90 file the code block is in.
+            parent_file_path: The path to the Fortran 90 file the code
+              block is in.
             contents: The lines of code that make up the block.
         """
 
@@ -46,8 +48,9 @@ class CodeBlock(ABC):
         if not self.contents:
             return 0
 
-        # Add 1 to final result to account for line numbers starting at 1
-        # e.g. A 5 line long file will do 5 - 1 and end up with length 4... so add 1.
+        # Add 1 to final result to account for line numbers starting at
+        # 1 e.g. A 5 line long file will do 5 - 1 and end up with length
+        # 4... so add 1.
         return (self.end_line_number - self.start_line_number) + 1
 
     @property
@@ -140,9 +143,11 @@ class CodeBlock(ABC):
                 # to the variable on the same line
                 variable_parts = variable.split("=")
                 variable_name = variable_parts[0].strip()
-                # This next bit was added after seeing that arrays with their length declared as
-                # part of the variable name, ended up storing the name with the length part still
-                # on the end of it... so now we search for it and remove.
+                # This next bit was added after seeing that arrays with
+                # their length declared as part of the variable name,
+                # ended up storing the name with the length part still
+                # on the end of it... so now we search for it and
+                # remove.
                 if re.search(r"\(\d+\)", variable_name) is not None:
                     bracket_index = variable_name.index("(")
                     variable_name = variable_name[:bracket_index]
@@ -170,7 +175,7 @@ class CodeBlock(ABC):
     def _parse_variable_type_and_attributes(self, type_and_attr_string: str) -> Tuple[str, List[str]]:
         """Parses the first half of a variable declaration.
 
-        Parses the parts of a Fortran variable declaration before the
+        Parses the elements of a Fortran variable declaration before the
         '::' part to figure out what data type and attributes are
         included as part of the variable declaration.
 
@@ -206,8 +211,9 @@ class CodeBlock(ABC):
                 open_bracket_count -= 1
             elif open_bracket_count == 0:
                 type_and_attr_parts.append(type_and_attr_string[start_of_slice:i].strip().upper())
-                # index i is on a comma at this point, and we're not that
-                # interested in keeping it so add 1 to the new slice starting point
+                # index i is on a comma at this point, and we're not
+                # that interested in keeping it so add 1 to the new
+                # slice starting point
                 start_of_slice = i + 1
 
         # Add the final split piece

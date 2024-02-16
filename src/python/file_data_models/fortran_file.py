@@ -28,7 +28,7 @@ class FortranFile(DigitalFile):
     """
 
     def __init__(self, path_from_root: str, contents: Iterable[str] = []) -> None:
-        """Initialises a file object, and then tags and parses its contents.
+        """Initialises a Fortran file object.
 
         Args:
             path_from_root: The path to the file, starting from the root
@@ -40,11 +40,13 @@ class FortranFile(DigitalFile):
 
         self.contents: List[CodeStatement] = []
         for index, line in enumerate(contents):
-            # This stops several commands on one line being counted as a single statement
+            # This stops several commands on one line being counted as a
+            # single statement.
             all_statements = self._split_statements(line)
 
             for statement in all_statements:
-                # Line numbers in almost all editors start at 1, hence the increment of index here
+                # Line numbers in almost all editors start at 1, hence
+                # the increment of index here.
                 self.contents.append(CodeStatement((index + 1), statement))
 
         self.components: List[CodeBlock] = self._parse_code_blocks()
@@ -52,21 +54,24 @@ class FortranFile(DigitalFile):
     def get_snippet(self, start_line: int, end_line: int) -> List[CodeStatement]:
         """Returns a slice of the file's contents.
 
-        Returns all statements in the file with line numbers between the given
-        start and end values (inclusive). The returned list may end up being slightly
-        longer than (end - start) items, since it is legal in Fortran to put multiple
-        statements on the same line by using semicolons.
+        Returns all statements in the file with line numbers between the
+        given start and end values (inclusive). The returned list may
+        end up being slightly longer than (end - start) items, since it
+        is legal in Fortran to put multiple statements on the same line
+        by using semicolons.
 
         Args:
-            start_line: The number of the first line to include in the slice.
+            start_line: The number of the first line to include in the
+              slice.
             end_line: The final line number to include in the slice.
 
         Returns:
-            A list of all CodeLine objects found with line numbers in the given range
-            (inclusive).
+            A list of all CodeLine objects found with line numbers in
+            the given range (inclusive).
 
         Raises:
-            ValueError: The provided start or end line number is below 1.
+            ValueError: The provided start or end line number is below
+              1.
         """
 
         if start_line < 1 or end_line < 1:
@@ -80,7 +85,17 @@ class FortranFile(DigitalFile):
         return statements_in_range
 
     def _parse_code_blocks(self) -> List[CodeBlock]:
-        """Analyses the lines in the file and creates code block objects."""
+        """Analyses the file's contents and creates code block objects.
+
+        Analyses the file's contents, working out where the different
+        code blocks contained in the file start and end according to
+        the regex patterns they match. The contents are then separated
+        into their respective blocks and added to a list of 'components'
+        that make up the file.
+
+        Returns:
+            A list of code blocks that make up the Fortran file.
+        """
 
         code_patterns = [
             (CodePattern.FUNCTION, CodePatternRegex.FUNCTION),
@@ -131,10 +146,11 @@ class FortranFile(DigitalFile):
         return found_components  # A non-empty stack means a code block has not been resolved somewhere
 
     def _split_statements(self, line: str) -> List[str]:
-        """Splits a string of statements separated by semicolons into a list."""
+        """Splits statements separated by semicolons into a list."""
 
-        # We will remove comments, split the line using ";", and then add the comment back.
-        # This is to avoid any comments getting unnecessarily split.
+        # We will remove comments, split the line using ";", and then
+        # add the comment back. This is to avoid any comments getting
+        # unnecessarily split.
         comment = find_comment(line)
         if comment:
             line = line.replace(comment, "")
@@ -159,6 +175,7 @@ class FortranFile(DigitalFile):
         first_statement = self.contents[0]
         last_statement = self.contents[-1]
 
-        # Add 1 to final result to account for line numbers starting at 1
-        # e.g. A 5 line long file will do 5 - 1 and end up with length 4... so add 1.
+        # Add 1 to final result to account for line numbers starting at
+        # 1 e.g. A 5 line long file will do 5 - 1 and end up with length
+        # 4... so add 1.
         return (last_statement.line_number - first_statement.line_number) + 1

@@ -6,7 +6,7 @@ ALL_RETURN_TYPES = "|".join([data_type.replace(" ", "[ \\t]+") for data_type in 
 
 
 class CodePattern:
-    """The names of all the types of Fortran code blocks we want to parse in this project."""
+    """The names of types of Fortran code blocks."""
 
     END = "END"
     FUNCTION = "FUNCTION"
@@ -23,10 +23,11 @@ class CodePattern:
     TYPE_END = "TYPE_END"
 
 
-# TODO: With the line splitting logic now present in our parsing, are the
-# start and end portions of each regex that allow for semicolons even needed anymore?
+# TODO: With the line splitting logic now present in our parsing, are
+# the start and end portions of each regex that allow for semicolons
+# even needed anymore?
 class CodePatternRegex:
-    """The regex patterns for all the types of Fortran code blocks we want to parse in this project."""
+    """The regex patterns for types of Fortran code blocks."""
 
     FUNCTION = (  # This is one monstrous regex...
         rf"^([\w\W]*;)?\s*"
