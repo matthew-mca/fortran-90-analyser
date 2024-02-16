@@ -67,7 +67,7 @@ class CodeParserStack:
               empty.
         """
 
-        if self.is_empty():
+        if self.is_empty:
             raise EmptyStackError("Cannot pop: stack is empty")
 
         stack_item = self.items.pop()
@@ -86,29 +86,31 @@ class CodeParserStack:
             empty, None is returned.
         """
 
-        if self.is_empty():
+        if self.is_empty:
             return None, None
 
         stack_item = self.items[-1]
         return stack_item.item_type, stack_item.line_number
 
+    @property
     def size(self) -> int:
-        """Returns the number of items currently in the stack."""
+        """The number of items currently in the stack."""
 
         return len(self.items)
 
+    @property
     def is_empty(self) -> bool:
-        """Checks if the stack is currently empty.
+        """Indicates if the stack is currently empty or not.
 
         Returns:
             A boolean value that is True when the stack is empty,
             otherwise False.
         """
 
-        return self.size() == 0
+        return self.size == 0
 
     def __repr__(self) -> str:
         return build_repr_from_attributes(
             target_object=self,
-            item_count=self.size(),
+            item_count=self.size,
         )

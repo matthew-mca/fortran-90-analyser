@@ -142,7 +142,7 @@ class FortranFile(DigitalFile):
                 new_block_type = all_code_block_types[block_type]
                 found_components.append(new_block_type(self.path_from_root, block_contents))
 
-        assert stack.is_empty()
+        assert stack.is_empty
         return found_components  # A non-empty stack means a code block has not been resolved somewhere
 
     def _split_statements(self, line: str) -> List[str]:
