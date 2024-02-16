@@ -23,6 +23,9 @@ class CodeBlock(ABC):
         parent_file_path: The path to the Fortran 90 file the code block
           is in.
         contents: The lines of code that make up the block.
+        start_line_number: The line number of the first line in the
+          block.
+        end_line_number: The line number of the final line in the block.
     """
 
     @abstractmethod
@@ -37,6 +40,8 @@ class CodeBlock(ABC):
 
         self.parent_file_path = parent_file_path
         self.contents = contents
+        self.start_line_number = self.contents[0].line_number
+        self.end_line_number = self.contents[-1].line_number
 
     def __repr__(self) -> str:
         return build_repr_from_attributes(
@@ -52,18 +57,6 @@ class CodeBlock(ABC):
         # 1 e.g. A 5 line long file will do 5 - 1 and end up with length
         # 4... so add 1.
         return (self.end_line_number - self.start_line_number) + 1
-
-    @property
-    def start_line_number(self) -> int:
-        """The line number of the first line in the code block."""
-
-        return self.contents[0].line_number
-
-    @property
-    def end_line_number(self) -> int:
-        """The line number of the last line in the code block."""
-
-        return self.contents[-1].line_number
 
     def contains_block(self, other: Self) -> bool:
         """Checks if the code block contains another provided block.

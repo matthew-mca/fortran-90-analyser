@@ -15,6 +15,8 @@ class FortranSubroutine(CodeBlock):
         contents: The lines of code that make up the subroutine.
         block_name: The name given to the subroutine.
         variables: A list of all the variables in the subroutine.
+        is_recursive: Whether the function is declared as recursive or
+          not.
     """
 
     def __init__(self, parent_file_path: str, contents: List[CodeStatement]) -> None:
@@ -24,11 +26,8 @@ class FortranSubroutine(CodeBlock):
         self.block_name = self._find_block_name("SUBROUTINE")
         self.variables = self._find_variable_declarations()
 
-    @property
-    def is_recursive(self) -> bool:
         start_line = self.contents[0].content
-
-        return re.search(r"\bRECURSIVE\b", start_line, re.IGNORECASE) is not None
+        self.is_recursive = re.search(r"\bRECURSIVE\b", start_line, re.IGNORECASE) is not None
 
     def _find_block_name(self, block_type: str) -> str:
         """Parses the code block's name from its declaration.
