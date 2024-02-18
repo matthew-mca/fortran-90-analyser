@@ -1,3 +1,9 @@
+from tests.object_factory import random_code_statement, random_fortran_module
+
+
 class TestFortranModule:
-    # This class will be populated when block-specific logic is added.
-    pass
+    def test_find_block_name(self):
+        declaration_statement = random_code_statement(content="MODULE test_module")
+        test_function = random_fortran_module(contents=[declaration_statement])
+
+        assert test_function.block_name == "test_module"

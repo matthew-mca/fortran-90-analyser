@@ -50,9 +50,6 @@ class CodeBlock(ABC):
         )
 
     def __len__(self) -> int:
-        if not self.contents:
-            return 0
-
         # Add 1 to final result to account for line numbers starting at
         # 1 e.g. A 5 line long file will do 5 - 1 and end up with length
         # 4... so add 1.
