@@ -20,6 +20,7 @@ class TestCodeStatement:
         assert test_code_statement.line_number == 22
         assert test_code_statement.content == line
         assert test_code_statement.matched_patterns == []
+        assert not test_code_statement.contains_comment
 
     def test_add_pattern(self, hello_world_line):
         hello_world_line.add_pattern(CodePattern.PROGRAM)

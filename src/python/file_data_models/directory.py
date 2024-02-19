@@ -7,20 +7,22 @@ from .fortran_file import FortranFile
 
 
 class Directory:
-    """A computer directory that can contain both files and subdirectories.
+    """A computer directory that can contain files and subdirectories.
 
     Attributes:
         name: The name of the directory.
-        subdirectories: A dict of directories, where the key is the name of the directory.
+        subdirectories: A dict of directories, where the key is the name
+          of the directory.
         files: A dict of files, where the key is the name of the file.
     """
 
     def __init__(self, name: str, subdirectories: List[Self] = [], files: List[DigitalFile] = []) -> None:
-        """Initialises a directory object and populates it with the provided subdirectories and files.
+        """Initialises a directory object.
 
         Args:
             name: The name of the directory.
-            subdirectories: A list of subdirectories to include in the directory.
+            subdirectories: A list of subdirectories to include in the
+              directory.
             files: A list of files to include in the directory.
         """
 
@@ -41,7 +43,8 @@ class Directory:
             subdir: The directory object to be added.
 
         Raises:
-            KeyError: An item with the same name as the provided directory already exists in the directory.
+            KeyError: An item with the same name as the provided
+              directory already exists in the directory.
         """
 
         if not self._name_is_taken(subdir.name):
@@ -56,7 +59,8 @@ class Directory:
             file_obj: The file object to be added.
 
         Raises:
-            KeyError: An item with the same name as the provided file already exists in the directory.
+            KeyError: An item with the same name as the provided file
+              already exists in the directory.
         """
 
         if not self._name_is_taken(file_obj.file_name):
@@ -65,13 +69,18 @@ class Directory:
             raise KeyError(f"Item with name '{file_obj.file_name}' already exists inside of directory '{self.name}'.")
 
     def get_item(self, key: str) -> Optional[Union[DigitalFile, Self]]:
-        """Returns an item with the provided key from the directory, or None if no such item exists.
+        """Returns an item with the provided key from the directory.
+
+        Returns an item from the directory that matches the provided
+        key, or None if there are no items in the directory that
+        match the key.
 
         Args:
             key: The name of the item to look for in the directory.
 
         Returns:
-            A file or subdirectory with the same name as the provided key, or None.
+            A file or subdirectory with the same name as the provided
+            key, or None.
         """
 
         all_items = {}
@@ -81,13 +90,16 @@ class Directory:
         return all_items.get(key)
 
     def get_all_fortran_files(self) -> List[FortranFile]:
-        """Returns a list containing all the Fortran files found in the directory.
+        """Returns a list of all the Fortran files in the directory.
 
-        This function searches not only the current directory, but also any directories
-        at a lower level than the current directory, gathering any and all Fortran files.
+        Returns a list of all Fortran files in the directory, starting
+        from the top level of the directory. This function searches not
+        only the current directory, but also recursively searches any
+        subdirectories.
 
         Returns:
-            A list of Fortran files found in the current directory or any subdirectories.
+            A list of Fortran files found in the current directory and
+            any subdirectories.
         """
 
         fortran_files = [file_obj for file_obj in self.files.values() if isinstance(file_obj, FortranFile)]

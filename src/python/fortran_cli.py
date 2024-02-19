@@ -1,12 +1,17 @@
 """
 The (currently) main entry point for the Fortran 90 code analyser.
 
-Below is a list of the current commands available, as well as their arguments:
+Below is a list of the current commands available, as well as their
+arguments:
 
 print-to-console: Prints the raw contents of a specified file.
-    file-path: The full path to the file you wish to print to the console.
-get-summary: Prints out a count of the different types of code blocks found in a file/codebase.
+    file-path: The full path to the file you wish to print to the
+      console.
+
+get-summary: Prints out a count of the different types of code blocks
+found in a file/codebase.
     code-path: The full path to the codebase/file you wish to parse.
+
 list-all-variables: Prints a list of all Fortran files, the code blocks
 they contain, and the variables those code blocks contain.
     code-path: The full path to the codebase/file you wish to parse.
