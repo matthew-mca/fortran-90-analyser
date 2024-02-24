@@ -9,5 +9,6 @@ def random_variable(**kwargs) -> Variable:
     kwargs.setdefault("parent_file_path", PY_FAKER.pystr())
     kwargs.setdefault("line_declared", PY_FAKER.pyint())
     kwargs.setdefault("possibly_unused", PY_FAKER.pybool())
+    kwargs.setdefault("is_array", PY_FAKER.pybool())
 
     return Variable(**kwargs)
