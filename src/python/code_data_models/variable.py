@@ -42,6 +42,7 @@ class Variable:
         parent_file_path: str,
         line_declared: int,
         possibly_unused: bool,
+        is_array: bool,
     ):
         """Initialises a Variable object."""
 
@@ -51,11 +52,8 @@ class Variable:
         self.parent_file_path = parent_file_path
         self.line_declared = line_declared
         self.possibly_unused = possibly_unused
+        self.is_array = is_array
         self.is_pointer = "POINTER" in self.attributes
-        # We can't just check DIMENSION is in the attribute list due to
-        # the varying bracket part of the DIMENSION attribute, e.g.
-        # DIMENSION(13, 9)
-        self.is_array = any("DIMENSION" in attribute for attribute in self.attributes)
 
     def __repr__(self) -> str:
         return build_repr_from_attributes(

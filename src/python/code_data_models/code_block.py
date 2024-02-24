@@ -129,6 +129,7 @@ class CodeBlock(ABC):
 
             variable_list = declaration_parts[1].split(",")
             for variable in variable_list:
+                is_array = any("DIMENSION" in attribute for attribute in attributes)
                 # Split on the "=" sign in case a value is assigned
                 # to the variable on the same line
                 variable_parts = variable.split("=")
@@ -139,6 +140,9 @@ class CodeBlock(ABC):
                 # on the end of it... so now we search for it and
                 # remove.
                 if re.search(r"\(\d+\)", variable_name) is not None:
+                    # TODO: Add testing for this case when adding
+                    # integration testing
+                    is_array = True
                     bracket_index = variable_name.index("(")
                     variable_name = variable_name[:bracket_index]
 
@@ -157,6 +161,7 @@ class CodeBlock(ABC):
                         parent_file_path=self.parent_file_path,
                         line_declared=self.contents[content_index].line_number,
                         possibly_unused=possibly_unused,
+                        is_array=is_array,
                     )
                 )
 
