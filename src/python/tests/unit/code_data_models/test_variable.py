@@ -20,6 +20,7 @@ class TestVariable:
             name="test_variable",
             parent_file_path="fake/path",
             line_declared=1,
+            is_array=False,
             possibly_unused=True,
         )
 
@@ -31,6 +32,7 @@ class TestVariable:
             name="test_variable",
             parent_file_path="fake/path",
             line_declared=1,
+            is_array=False,
             possibly_unused=False,
         )
 

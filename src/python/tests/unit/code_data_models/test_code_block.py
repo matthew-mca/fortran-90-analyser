@@ -114,3 +114,29 @@ class TestCodeBlock:
         assert "char_2" not in variables_marked_unused
         for name in expected_names:
             assert name in variables_marked_unused
+
+    @pytest.mark.parametrize(
+        "split_string,delimiter,expected_result",
+        [
+            (
+                "*a*string*to*'be*split*with'*quotes*",
+                "*",
+                ["", "a", "string", "to", "'be*split*with'", "quotes", ""],
+            ),
+            (
+                "'::'CHARACTER(LEN=1024) :: char_1=':: Declare :: variables with ::'",
+                "::",
+                ["'::'CHARACTER(LEN=1024) ", " char_1=':: Declare :: variables with ::'"],
+            ),
+            (
+                "test!*!string!*!to!*!split!*!",
+                "!*!",
+                ["test", "string", "to", "split", ""],
+            ),
+        ],
+    )
+    def test_split_outside_quotes(self, split_string, delimiter, expected_result):
+        code_block = random_fortran_program()
+        split_result = code_block._split_outside_quotes(split_string, delimiter)
+
+        assert split_result == expected_result
