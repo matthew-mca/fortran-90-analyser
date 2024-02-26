@@ -122,17 +122,17 @@ class CodeBlock(ABC):
 
             line_content = remove_comment_from_line(line_content)
 
-            declaration_parts = line_content.split("::")
+            declaration_parts = self._split_outside_quotes(line_content, "::")
             # Variables can have various attributes that follow the
             # data type, but these aren't required
             data_type, attributes = self._parse_variable_type_and_attributes(declaration_parts[0])
 
-            variable_list = declaration_parts[1].split(",")
+            variable_list = self._split_outside_quotes(declaration_parts[1], ",")
             for variable in variable_list:
                 is_array = any("DIMENSION" in attribute for attribute in attributes)
                 # Split on the "=" sign in case a value is assigned
                 # to the variable on the same line
-                variable_parts = variable.split("=")
+                variable_parts = self._split_outside_quotes(variable, "=")
                 variable_name = variable_parts[0].strip()
                 # This next bit was added after seeing that arrays with
                 # their length declared as part of the variable name,
@@ -149,7 +149,7 @@ class CodeBlock(ABC):
                 # Check the remaining lines to determine if
                 # there is a possibility the variable is unused
                 possibly_unused = True
-                for line in self.contents[content_index + 1 :]:  # noqa: E203
+                for line in self.contents[content_index + 1 :]:
                     if re.search(rf"\b{variable_name}\b", line.content):
                         possibly_unused = False
 
@@ -215,3 +215,38 @@ class CodeBlock(ABC):
         type_and_attr_parts.append(type_and_attr_string[start_of_slice:].strip().upper())
 
         return type_and_attr_parts[0], type_and_attr_parts[1:]
+
+    def _split_outside_quotes(self, string_to_split: str, delimiter: str) -> List[str]:
+        split_parts = []
+
+        # Set and unset as we enter and exit quotes
+        active_quote_char = None
+        quote_chars = ("'", '"')
+        start_of_slice = 0
+
+        for i in range(len(string_to_split)):
+            current_str = string_to_split[start_of_slice:i]
+            reverse = current_str[::-1]
+
+            if delimiter == reverse[: len(delimiter)] and active_quote_char is None:
+                # Reaching here means we found our delimiter outside
+                # quotes
+                split_parts.append(string_to_split[start_of_slice : (i - len(delimiter))])
+                start_of_slice = i
+
+            if string_to_split[i] in quote_chars and active_quote_char is None:
+                active_quote_char = string_to_split[i]
+            elif active_quote_char is not None:
+                if string_to_split[i] == active_quote_char:
+                    active_quote_char = None
+
+        # Due to the fact that in our loop we check if we need to split,
+        # THEN we check if we have left a quoted string, if the supplied
+        # string argument ends with a quote character, we have to do one
+        # final check outside the loop to see if a split is needed.
+        if string_to_split[start_of_slice:][-1] in quote_chars:
+            split_parts.append(string_to_split[start_of_slice:])
+        else:
+            split_parts.extend(string_to_split[start_of_slice:].split(delimiter))
+
+        return split_parts
