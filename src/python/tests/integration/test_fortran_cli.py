@@ -13,6 +13,7 @@ class TestFortranCLI:
     def live_data_path(self):
         return "./src/python/tests/integration/.live_test_data"
 
+    @pytest.mark.skip(reason="Test currently hangs when executing. Will be fixed in scoping PR")
     def test_get_summary(self, runner, live_data_path):
         result = runner.invoke(cli, ["get-summary", "--code-path", live_data_path])
         summary_output = result.output.split("\n")

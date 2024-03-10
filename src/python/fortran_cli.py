@@ -4,7 +4,7 @@ The (currently) main entry point for the Fortran 90 code analyser.
 Below is a list of the current commands available, as well as their
 arguments:
 
-print-to-console: Prints the raw contents of a specified file.
+get-raw-contents: Prints the raw contents of a specified file.
     file-path: The full path to the file you wish to print to the
       console.
 
@@ -28,42 +28,47 @@ from code_data_models.fortran_program import FortranProgram
 from code_data_models.fortran_subroutine import FortranSubroutine
 from code_data_models.fortran_type import FortranType
 from parsers.file_parser import FileParser
+from serializers import SerializerRegistry
+
+
+def check_output_path_file_extension(ctx: click.Context, param: click.Option, value: str) -> str:
+    output_format = ctx.params["output_format"]
+    if value.endswith(f".{output_format}"):
+        return value
+    else:
+        raise click.BadParameter(
+            f"Output path must end with the extension for your chosen output format ({output_format})."
+        )
 
 
 @click.group()
-def cli() -> None:
-    pass
-
-
-@cli.command()
-@click.option(
-    "--file-path",
-    required=True,
-    prompt=True,
-    help="The full path to the file you wish to print to the console.",
-)
-def print_to_console(file_path: str) -> None:
-    file_parser = FileParser()
-    try:
-        for line in file_parser.parse_file_contents(file_path):
-            click.echo(line, nl=False)
-    except FileNotFoundError:
-        click.echo("Unable to print file contents - the file path you have provided is not valid.")
-    except Exception:
-        click.echo("An unknown error occurred when attempting to read the file.")
-
-
-@cli.command()
 @click.option(
     "--code-path",
     required=True,
     prompt=True,
     help="The full path to the codebase/file you wish to parse.",
+    type=click.Path(exists=True, resolve_path=True),
 )
-def get_summary(code_path: str) -> None:
-    if not os.path.exists(code_path):
-        click.echo("There was an error getting metrics: path is not valid.")
-        return
+@click.option(
+    "--output-format",
+    type=click.Choice(SerializerRegistry.get_all_serializable_formats(), case_sensitive=False),
+    help="The format to serialize the results of a command to.",
+    is_eager=True,
+)
+@click.option(
+    "--output-path",
+    help="The location to output the results of a command to.",
+    callback=check_output_path_file_extension,
+    type=click.Path(writable=True, resolve_path=True),
+)
+@click.pass_context
+def cli(ctx: click.Context, code_path: str, output_format: str, output_path: str) -> None:
+    ctx.ensure_object(dict)
+    if (output_format and not output_path) or (output_path and not output_format):
+        raise click.BadParameter(
+            "A format and path must both be specified if outputting "
+            "the results of your command to an alternative format."
+        )
 
     parser = FileParser()
     if os.path.isdir(code_path):
@@ -72,7 +77,48 @@ def get_summary(code_path: str) -> None:
     else:
         fortran_files = [parser.parse_file(code_path)]
 
-    fortran_file_count = len(fortran_files)
+    if output_format:
+        serializer = SerializerRegistry.get_serializer(output_format.lower(), output_path, fortran_files)
+        ctx.obj["serializer"] = serializer
+    else:
+        ctx.obj["files"] = fortran_files
+
+
+@cli.command()
+@click.pass_context
+def get_raw_contents(ctx: click.Context) -> None:
+    if serializer := ctx.obj.get("serializer"):
+        try:
+            serializer.serialize_get_raw_contents()
+            click.echo(f"Results serialized successfully to '{serializer.output_path}'.")
+        except FileNotFoundError as e:
+            click.echo(f"There was an error while serializing the result of get-raw-contents: {str(e)}")
+        except Exception:
+            click.echo("An unknown error occurred while serialzing the result of get-raw-contents.")
+
+        return
+
+    for f90_file in ctx.obj["files"]:
+        click.echo(f90_file.file_name)
+        for line in f90_file.contents:
+            click.echo(f"\t{line.content}")
+
+
+@cli.command()
+@click.pass_context
+def get_summary(ctx: click.Context) -> None:
+    if serializer := ctx.obj.get("serializer"):
+        try:
+            serializer.serialize_get_summary()
+            click.echo(f"Results serialized successfully to '{serializer.output_path}'.")
+        except FileNotFoundError as e:
+            click.echo(f"There was an error while serializing the result of get-summary: {str(e)}")
+        except Exception:
+            click.echo("An unknown error occurred while serialzing the result of get-summary.")
+
+        return
+
+    fortran_file_count = len(ctx.obj["files"])
     comment_count = 0
     function_count = 0
     interface_count = 0
@@ -81,19 +127,19 @@ def get_summary(code_path: str) -> None:
     subroutine_count = 0
     type_count = 0
 
-    for f90_file in fortran_files:
+    for f90_file in ctx.obj["files"]:
         comment_count += len([line for line in f90_file.contents if line.contains_comment])
 
         for component in f90_file.components:
             if isinstance(component, FortranFunction):
                 function_count += 1
-            if isinstance(component, FortranInterface):
+            elif isinstance(component, FortranInterface):
                 interface_count += 1
-            if isinstance(component, FortranModule):
+            elif isinstance(component, FortranModule):
                 module_count += 1
             elif isinstance(component, FortranProgram):
                 program_count += 1
-            if isinstance(component, FortranSubroutine):
+            elif isinstance(component, FortranSubroutine):
                 subroutine_count += 1
             elif isinstance(component, FortranType):
                 type_count += 1
@@ -111,28 +157,24 @@ def get_summary(code_path: str) -> None:
 
 
 @cli.command()
-@click.option(
-    "--code-path",
-    required=True,
-    prompt=True,
-    help="The full path to the codebase/file you wish to parse.",
-)
-def list_all_variables(code_path: str) -> None:
-    if not os.path.exists(code_path):
-        click.echo("There was an error getting metrics: path is not valid.")
+@click.pass_context
+def list_all_variables(ctx: click.Context) -> None:
+    if serializer := ctx.obj.get("serializer"):
+        try:
+            serializer.serialize_list_all_variables()
+            click.echo(f"Results serialized successfully to '{serializer.output_path}'.")
+        except FileNotFoundError as e:
+            click.echo(f"There was an error while serializing the result of list-all-variables: {str(e)}")
+        except Exception:
+            click.echo("An unknown error occurred while serialzing the result of list-all-variables.")
+
         return
 
-    parser = FileParser()
-    if os.path.isdir(code_path):
-        codebase = parser.build_directory_tree(code_path)
-        fortran_files = codebase.get_all_fortran_files()
-    else:
-        fortran_files = [parser.parse_file(code_path)]
-
-    for f90_file in fortran_files:
+    for f90_file in ctx.obj["files"]:
         click.echo(f90_file.path_from_root)
         for component in f90_file.components:
             if hasattr(component, "variables"):
+                # TODO: Interfaces do not have block names...
                 click.echo(f"\t{type(component).__name__} '{component.block_name}'")
                 for variable in component.variables:
                     click.echo(f"\t\t{variable.data_type} '{variable.name}' declared on line {variable.line_declared};")
@@ -141,4 +183,4 @@ def list_all_variables(code_path: str) -> None:
 
 
 if __name__ == "__main__":
-    cli()
+    cli(obj={})

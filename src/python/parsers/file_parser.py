@@ -1,5 +1,5 @@
 import os
-from typing import Generator, Union
+from typing import Generator, Optional, Union
 
 from file_data_models.digital_file import DigitalFile
 from file_data_models.directory import Directory
@@ -10,20 +10,24 @@ from file_data_models.fortran_file import FortranFile
 class FileParser:
     """Parses the content of files and directories."""
 
-    def parse_file(self, file_path: str, root_dir_path: str) -> Union[DigitalFile, FortranFile]:
+    def parse_file(self, file_path: str, root_dir_path: Optional[str] = None) -> Union[DigitalFile, FortranFile]:
         """Parses a file at a given path and returns it as an object.
 
         Args:
             file_path: The path to the file.
             root_dir_path: The path to the root of the codebase being
-              parsed.
+              parsed. If there is no root directory path provided, this
+              value is defaulted to the absolute path to the file.
 
         Returns:
             A file object. If the file is a Fortran file, its contents
             are also included.
         """
+        if root_dir_path:
+            path_from_root_dir = file_path.replace(f"{root_dir_path}/", "")
+        else:
+            path_from_root_dir = os.path.abspath(file_path)
 
-        path_from_root_dir = file_path.replace(f"{root_dir_path}/", "")
         if not self.is_f90_file(file_path):
             return DigitalFile(path_from_root_dir)
         else:
