@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple
 
+from code_data_models.code_block import CodeBlock
 from utils.repr_builder import build_repr_from_attributes
 
 
@@ -16,10 +17,18 @@ class CodeParserStackItem:
         item_type: The type of code block start that was detected.
         line_number: The line number at which the code block starts in
           the overall file.
+        subprograms: A list of CodeBlock objects that have been found
+          before the item has found its accompanying END statement.
     """
 
     item_type: str
     line_number: int
+    subprograms: list
+
+    def add_subprogram(self, subprogram: CodeBlock) -> None:
+        """Adds a provided CodeBlock object to the stack item."""
+
+        self.subprograms.append(subprogram)
 
 
 class CodeParserStack:
@@ -52,15 +61,18 @@ class CodeParserStack:
               came from.
         """
 
-        self.items.append(CodeParserStackItem(statement_type, line_number))
+        self.items.append(CodeParserStackItem(statement_type, line_number, []))
 
-    def pop(self) -> Tuple[str, int]:
+    def pop(self) -> Tuple[str, int, List[CodeBlock]]:
         """Removes the top item off of the stack and returns its values.
 
         Returns:
-            A tuple (type, line_number), where 'type' is the type of
-            program statement the line matched, and 'line_number' is the
-            number of the line in the file it came from.
+            A tuple (type, line_number, subprograms), where 'type' is
+            the type of program statement the line matched,
+            'line_number' is the number of the line in the file it came
+            from, and 'subprograms' is a list of CodeBlock objects that
+            have been found before the item has found its accompanying
+            END statement.
 
         Raises:
             EmptyStackError: A pop was attempted while the stack was
@@ -71,26 +83,34 @@ class CodeParserStack:
             raise EmptyStackError("Cannot pop: stack is empty")
 
         stack_item = self.items.pop()
-        return stack_item.item_type, stack_item.line_number
+        return stack_item.item_type, stack_item.line_number, stack_item.subprograms
 
-    def peek(self) -> Union[Tuple[str, int], Tuple[None, None]]:
+    def peek(self) -> Optional[Tuple[str, int, List[CodeBlock]]]:
         """Previews the values of the item at the top of the stack.
 
         Returns the values of the item at the top of the stack, but
         does not remove the item from the top of the stack.
 
         Returns:
-            A tuple (type, line_number), where 'type' is the type of
-            program statement the line matched, and 'line_number' is the
-            number of the line in the file it came from. If the stack is
-            empty, None is returned.
+            A tuple (type, line_number, subprograms), where 'type' is
+            the type of program statement the line matched,
+            'line_number' is the number of the line in the file it came
+            from, and 'subprograms' is a list of CodeBlock items that
+            have been found before the item has found its accompanying
+            END statement. If the stack is empty, 'None' is returned.
         """
 
         if self.is_empty:
-            return None, None
+            return None
 
         stack_item = self.items[-1]
-        return stack_item.item_type, stack_item.line_number
+        return stack_item.item_type, stack_item.line_number, stack_item.subprograms
+
+    def add_subprogram_to_top_item(self, subprogram: CodeBlock) -> None:
+        """Adds a CodeBlock to the item at the top of the stack."""
+
+        top_item = self.items[-1]
+        top_item.add_subprogram(subprogram)
 
     @property
     def size(self) -> int:

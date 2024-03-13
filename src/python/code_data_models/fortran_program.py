@@ -13,11 +13,14 @@ class FortranProgram(CodeBlock):
         contents: The lines of code that make up the program.
         block_name: The name given to the program.
         variables: A list of all the variables in the program.
+        subprograms: A list of CodeBlock objects contained by the code
+          block being instantiated.
     """
 
-    def __init__(self, parent_file_path: str, contents: List[CodeStatement]) -> None:
+    def __init__(self, parent_file_path: str, contents: List[CodeStatement], subprograms: List[CodeBlock]) -> None:
         """Initialises a program object."""
 
         super().__init__(parent_file_path, contents)
         self.block_name = self._find_block_name("PROGRAM")
         self.variables = self._find_variable_declarations()
+        self.subprograms = subprograms
