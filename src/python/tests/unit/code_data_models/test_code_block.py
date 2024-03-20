@@ -9,6 +9,7 @@ from tests.object_factory import (
     random_fortran_program,
     random_fortran_subroutine,
     random_fortran_type,
+    random_variable,
 )
 
 
@@ -140,3 +141,107 @@ class TestCodeBlock:
         split_result = code_block._split_outside_quotes(split_string, delimiter)
 
         assert split_result == expected_result
+
+    def test_get_variables_not_in_subprograms(self):
+        fake_file_path = "fake/dir/file.f90"
+
+        test_program = random_fortran_program(
+            parent_file_path=fake_file_path,
+            subprograms=[],
+        )
+
+        test_var_1 = random_variable(
+            data_type="INTEGER",
+            attributes=[],
+            name="variable_1",
+            parent_file_path=fake_file_path,
+            line_declared=1,
+            is_array=False,
+        )
+
+        test_var_2 = random_variable(
+            data_type="REAL",
+            attributes=[],
+            name="variable_2",
+            parent_file_path=fake_file_path,
+            line_declared=2,
+            is_array=False,
+        )
+
+        test_var_3 = random_variable(
+            data_type="COMPLEX",
+            attributes=[],
+            name="variable_3",
+            parent_file_path=fake_file_path,
+            line_declared=3,
+            is_array=True,
+        )
+
+        test_var_4 = random_variable(
+            data_type="DOUBLE PRECISION",
+            attributes=[],
+            name="variable_4",
+            parent_file_path=fake_file_path,
+            line_declared=4,
+            is_array=False,
+        )
+
+        test_program.variables.extend(
+            [
+                test_var_1,
+                test_var_2,
+                test_var_3,
+                test_var_4,
+            ]
+        )
+
+        # As we create the subprogram that we will then add to the
+        # existing program, the subprogram's two variables have been
+        # created completely new, but with attributes identical to two
+        # of the variables in the larger program. This is to prove the
+        # comparison made is not based on two Variable objects being the
+        # same object in memory.
+
+        test_subprogram = random_fortran_function(
+            parent_file_path=fake_file_path,
+        )
+        test_program.subprograms.append(test_subprogram)
+
+        test_subprogram_var_1 = random_variable(
+            data_type="INTEGER",
+            attributes=[],
+            name="variable_1",
+            parent_file_path=fake_file_path,
+            line_declared=1,
+            is_array=False,
+        )
+
+        test_subprogram_var_2 = random_variable(
+            data_type="REAL",
+            attributes=[],
+            name="variable_2",
+            parent_file_path=fake_file_path,
+            line_declared=2,
+            is_array=False,
+        )
+
+        test_subprogram.variables.extend(
+            [
+                test_subprogram_var_1,
+                test_subprogram_var_2,
+            ]
+        )
+
+        non_subprogram_vars = test_program.get_variables_not_in_subprograms()
+        assert len(non_subprogram_vars) == 2
+        expected_names = [
+            "variable_3",
+            "variable_4",
+        ]
+        assert expected_names == [var.name for var in non_subprogram_vars]
+
+    def test_get_variables_not_in_subprograms_type_error(self):
+        unsupported_code_block = random_fortran_type()
+
+        with pytest.raises(TypeError):
+            unsupported_code_block.get_variables_not_in_subprograms()

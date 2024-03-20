@@ -78,6 +78,35 @@ class CodeBlock(ABC):
 
         return self.start_line_number < other.start_line_number and self.end_line_number > other.end_line_number
 
+    def get_variables_not_in_subprograms(self) -> List[Variable]:
+        """Returns all the variables not present in any subprograms.
+
+        Collects all of the variables stored in each subprogram inside
+        the code block. Once all these variables have been collected,
+        the function creates and returns a list containing ONLY the
+        variables not found in this list of subprogram variables. This
+        means that only the variables at the block's widest scope are
+        returned.
+
+        Returns:
+            The list of variables stored for the code block, minus any
+            variables that can also be found in the block's subprograms.
+
+        Raises:
+            TypeError: The object calling this function does not support
+              subprograms and/or variables. Certain child classes of
+              CodeBlock do not have these attributes.
+        """
+
+        if not hasattr(self, "subprograms") or not hasattr(self, "variables"):
+            raise TypeError("Current code block type does not support subprograms and/or variables.")
+
+        all_subprogram_variables = []
+        for subprogram in self.subprograms:
+            all_subprogram_variables.extend(subprogram.variables)
+
+        return [var for var in self.variables if var not in all_subprogram_variables]
+
     def _find_block_name(self, block_type: str) -> str:
         """Parses the code block's name from its declaration.
 

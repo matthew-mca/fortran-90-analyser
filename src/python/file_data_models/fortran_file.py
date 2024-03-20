@@ -16,6 +16,11 @@ from utils.repr_builder import build_repr_from_attributes
 
 from .digital_file import DigitalFile
 
+CODE_BLOCKS_THAT_SUPPORT_SUBPROGRAMS = [
+    FortranModule,
+    FortranProgram,
+]
+
 
 class FortranFile(DigitalFile):
     """A file with the .f90 extension. Stores Fortran 90 code.
@@ -137,10 +142,23 @@ class FortranFile(DigitalFile):
                 stack.push(line.matched_patterns[0], line.line_number)
 
             if line.is_end_statement():
-                block_type, start_line = stack.pop()
+                block_type, start_line, subprograms = stack.pop()
                 block_contents = self.get_snippet(start_line, line.line_number)
                 new_block_type = all_code_block_types[block_type]
-                found_components.append(new_block_type(self.path_from_root, block_contents))
+                if new_block_type in CODE_BLOCKS_THAT_SUPPORT_SUBPROGRAMS:
+                    block_object = new_block_type(self.path_from_root, block_contents, subprograms)
+                else:
+                    # Something has went wrong in our parsing logic if
+                    # the stack item we popped is for a type of code
+                    # block that doesn't support subprograms, but we
+                    # somehow ended up with subprograms anyway...
+                    assert subprograms == []
+                    block_object = new_block_type(self.path_from_root, block_contents)
+
+                if stack.peek() is not None:
+                    stack.add_subprogram_to_top_item(block_object)
+                else:
+                    found_components.append(block_object)
 
         assert stack.is_empty
         return found_components  # A non-empty stack means a code block has not been resolved somewhere

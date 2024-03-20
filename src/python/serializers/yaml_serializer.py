@@ -42,7 +42,7 @@ class _YAMLSerializer(Serializer):
         """
 
         with open(self.output_path, "w") as f:
-            yaml.dump(yaml_output, f, Dumper=NoAliasDumper)
+            yaml.dump(yaml_output, f, Dumper=NoAliasDumper, sort_keys=False)
 
     def serialize_get_raw_contents(self) -> None:
         output: Dict[str, Any] = {}
@@ -87,18 +87,37 @@ class _YAMLSerializer(Serializer):
 
         self._write_yaml_to_file(output)
 
-    def serialize_list_all_variables(self) -> None:
+    def serialize_list_all_variables(self, no_duplicates: bool) -> None:
         def build_component_dict(component: CodeBlock) -> Dict[str, Any]:
             class_name = type(component).__name__
+            has_subprograms = hasattr(component, "subprograms")
+
             component_json: Dict[str, Any] = {
                 "blockType": class_name.replace("Fortran", "").lower(),
+                "startLineNumber": component.start_line_number,
+                "endLineNumber": component.end_line_number,
             }
 
             if hasattr(component, "block_name"):
                 component_json["blockName"] = component.block_name
 
+            if hasattr(component, "is_recursive"):
+                component_json["isRecursive"] = component.is_recursive
+
+            if has_subprograms:
+                component_json["subprogramCount"] = len(component.subprograms)
+                component_json["subprograms"] = [
+                    build_component_dict(subprogram) for subprogram in component.subprograms
+                ]
+
             if hasattr(component, "variables"):
-                component_json["variables"] = [build_variable_dict(var) for var in component.variables]
+                if has_subprograms and no_duplicates:
+                    variable_list = component.get_variables_not_in_subprograms()
+                else:
+                    variable_list = component.variables
+
+                component_json["variableCount"] = len(variable_list)
+                component_json["variables"] = [build_variable_dict(var) for var in variable_list]
 
             return component_json
 
@@ -116,12 +135,14 @@ class _YAMLSerializer(Serializer):
         output: Dict[str, Any] = {}
 
         output["fileCount"] = len(self.fortran_files)
+        output["noDuplicateVariableInformation"] = no_duplicates
         output["files"] = []
 
         for f90_file in self.fortran_files:
             output["files"].append(
                 {
                     "filePath": f90_file.path_from_root,
+                    "componentCount": len(f90_file.components),
                     "components": [build_component_dict(component) for component in f90_file.components],
                 }
             )

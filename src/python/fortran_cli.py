@@ -17,10 +17,16 @@ they contain, and the variables those code blocks contain.
     code-path: The full path to the codebase/file you wish to parse.
 """
 
+# TODO: Given the help feature available as part of click, we may be
+# able to move the above docstring into the commands themselves, so that
+# they can be opened on the command line using the --help command.
+
 import os
+from typing import Optional
 
 import click
 
+from code_data_models.code_block import CodeBlock
 from code_data_models.fortran_function import FortranFunction
 from code_data_models.fortran_interface import FortranInterface
 from code_data_models.fortran_module import FortranModule
@@ -31,8 +37,10 @@ from parsers.file_parser import FileParser
 from serializers import SerializerRegistry
 
 
-def check_output_path_file_extension(ctx: click.Context, param: click.Option, value: str) -> str:
-    output_format = ctx.params["output_format"]
+def check_output_path_file_extension(ctx: click.Context, param: click.Option, value: str) -> Optional[str]:
+    if not (output_format := ctx.params["output_format"]):
+        return None
+
     if value.endswith(f".{output_format}"):
         return value
     else:
@@ -157,11 +165,22 @@ def get_summary(ctx: click.Context) -> None:
 
 
 @cli.command()
+@click.option(
+    "--no-duplicates",
+    help=(
+        "Stops variables found in the subprograms for a larger "
+        "program unit from appearing more than once. Variables "
+        "inside of any subprograms are only listed as part of the "
+        "subprogram's variables, and not as part of the larger program "
+        "unit's variables."
+    ),
+    is_flag=True,
+)
 @click.pass_context
-def list_all_variables(ctx: click.Context) -> None:
+def list_all_variables(ctx: click.Context, no_duplicates: bool) -> None:
     if serializer := ctx.obj.get("serializer"):
         try:
-            serializer.serialize_list_all_variables()
+            serializer.serialize_list_all_variables(no_duplicates)
             click.echo(f"Results serialized successfully to '{serializer.output_path}'.")
         except FileNotFoundError as e:
             click.echo(f"There was an error while serializing the result of list-all-variables: {str(e)}")
@@ -170,16 +189,57 @@ def list_all_variables(ctx: click.Context) -> None:
 
         return
 
-    for f90_file in ctx.obj["files"]:
-        click.echo(f90_file.path_from_root)
-        for component in f90_file.components:
-            if hasattr(component, "variables"):
-                # TODO: Interfaces do not have block names...
-                click.echo(f"\t{type(component).__name__} '{component.block_name}'")
-                for variable in component.variables:
-                    click.echo(f"\t\t{variable.data_type} '{variable.name}' declared on line {variable.line_declared};")
+    def print_component_info(component: CodeBlock, indent_level: int = 0) -> None:
+        indent = "\t" * indent_level
+
+        class_name = type(component).__name__
+        block_type = class_name.replace("Fortran", "")
+        has_subprograms = getattr(component, "subprograms", []) != []
+
+        component_info = ""
+
+        if getattr(component, "is_recursive", None):
+            component_info += f"Recursive {block_type.lower()} "
+        else:
+            component_info += f"{block_type} "
+
+        if block_name := getattr(component, "block_name", None):
+            component_info += f"'{block_name}' "
+
+        component_info += f"from line {component.start_line_number} to {component.end_line_number};"
+
+        click.echo(f"{indent}\t{component_info}")
+
+        if hasattr(component, "variables"):
+            if has_subprograms and no_duplicates:
+                variable_list = component.get_variables_not_in_subprograms()
+            else:
+                variable_list = component.variables
+
+            if variable_list:
+                click.echo(f"{indent}\tVARIABLES")
+                for var in variable_list:
+                    click.echo(f"{indent}\t\t{var.data_type} '{var.name}' declared on line {var.line_declared};")
 
                 click.echo()
+
+        if has_subprograms:
+            click.echo(f"{indent}\tSUBPROGRAMS")
+            for subprogram in component.subprograms:
+                print_component_info(subprogram, indent_level + 1)
+
+    fortran_files = ctx.obj["files"]
+    click.echo(f"Number of files found: {len(fortran_files)}")
+    click.echo()
+
+    for f90_file in fortran_files:
+        click.echo(f"File path: '{f90_file.path_from_root}'")
+        click.echo(f"Number of components in file: {len(f90_file.components)}")
+        click.echo("Components in file:")
+
+        for component in f90_file.components:
+            print_component_info(component)
+            click.echo()
 
 
 if __name__ == "__main__":

@@ -47,8 +47,16 @@ class Serializer(ABC):
         pass
 
     @abstractmethod
-    def serialize_list_all_variables(self) -> None:
-        """Serializes the results of the list-all-variables command."""
+    def serialize_list_all_variables(self, no_duplicates: bool) -> None:
+        """Serializes the results of the list-all-variables command.
+
+        Args:
+            no_duplicates: Stops variables found in the subprograms for
+              a larger program unit from appearing more than once.
+              Variables inside of any subprograms are only listed as
+              part of the subprogram's variables, and not as part of the
+              larger program unit's variables.
+        """
         pass
 
 
