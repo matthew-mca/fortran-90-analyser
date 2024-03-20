@@ -47,7 +47,7 @@ class Serializer(ABC):
         pass
 
     @abstractmethod
-    def serialize_list_all_variables(self) -> None:
+    def serialize_list_all_variables(self, no_duplicates: bool) -> None:
         """Serializes the results of the list-all-variables command."""
         pass
 
