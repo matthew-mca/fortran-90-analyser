@@ -17,6 +17,10 @@ they contain, and the variables those code blocks contain.
     code-path: The full path to the codebase/file you wish to parse.
 """
 
+# TODO: Given the help feature available as part of click, we may be
+# able to move the above docstring into the commands themselves, so that
+# they can be opened on the command line using the --help command.
+
 import os
 from typing import Optional
 
