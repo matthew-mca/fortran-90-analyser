@@ -38,8 +38,18 @@ from serializers import SerializerRegistry
 
 
 def check_output_path_file_extension(ctx: click.Context, param: click.Option, value: str) -> Optional[str]:
-    if not (output_format := ctx.params["output_format"]):
-        return None
+    output_format = ctx.params["output_format"]
+
+    # mypy marks the return here as unreachable, but leaving out both an
+    # output format and output path reaches the return statement.
+    if output_format is None and value is None:
+        return None  # type: ignore[unreachable]
+
+    if (output_format and not value) or (value and not output_format):
+        raise click.BadParameter(
+            "A format and path must both be specified if outputting "
+            "the results of your command to an alternative format."
+        )
 
     if value.endswith(f".{output_format}"):
         return value
@@ -56,27 +66,25 @@ def check_output_path_file_extension(ctx: click.Context, param: click.Option, va
     prompt=True,
     help="The full path to the codebase/file you wish to parse.",
     type=click.Path(exists=True, resolve_path=True),
+    envvar="FORTRAN_CODE_PATH",
 )
 @click.option(
     "--output-format",
     type=click.Choice(SerializerRegistry.get_all_serializable_formats(), case_sensitive=False),
     help="The format to serialize the results of a command to.",
     is_eager=True,
+    envvar="OUTPUT_FORMAT",
 )
 @click.option(
     "--output-path",
     help="The location to output the results of a command to.",
     callback=check_output_path_file_extension,
     type=click.Path(writable=True, resolve_path=True),
+    envvar="OUTPUT_PATH",
 )
 @click.pass_context
 def cli(ctx: click.Context, code_path: str, output_format: str, output_path: str) -> None:
     ctx.ensure_object(dict)
-    if (output_format and not output_path) or (output_path and not output_format):
-        raise click.BadParameter(
-            "A format and path must both be specified if outputting "
-            "the results of your command to an alternative format."
-        )
 
     parser = FileParser()
     if os.path.isdir(code_path):
@@ -175,6 +183,7 @@ def get_summary(ctx: click.Context) -> None:
         "unit's variables."
     ),
     is_flag=True,
+    envvar="NO_DUPLICATE_VARS",
 )
 @click.pass_context
 def list_all_variables(ctx: click.Context, no_duplicates: bool) -> None:
