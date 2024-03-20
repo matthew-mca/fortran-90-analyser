@@ -78,6 +78,16 @@ class CodeBlock(ABC):
 
         return self.start_line_number < other.start_line_number and self.end_line_number > other.end_line_number
 
+    def get_variables_not_in_subprograms(self) -> List[Variable]:
+        if not hasattr(self, "subprograms") or not hasattr(self, "variables"):
+            raise TypeError("Current code block type does not support subprograms and/or variables.")
+
+        all_subprogram_variables = []
+        for subprogram in self.subprograms:
+            all_subprogram_variables.extend(subprogram.variables)
+
+        return [var for var in self.variables if var not in all_subprogram_variables]
+
     def _find_block_name(self, block_type: str) -> str:
         """Parses the code block's name from its declaration.
 
