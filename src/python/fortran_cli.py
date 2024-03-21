@@ -1,28 +1,19 @@
 """
-The (currently) main entry point for the Fortran 90 code analyser.
+The main entry point for the Fortran 90 code analyser.
 
-Below is a list of the current commands available, as well as their
-arguments:
+In order to view information about the available CLI commands and their
+various options, run this file with the --help flag. It is also possible
+to view information about a specific command by running the command with
+the --help flag.
 
-get-raw-contents: Prints the raw contents of a specified file.
-    file-path: The full path to the file you wish to print to the
-      console.
-
-get-summary: Prints out a count of the different types of code blocks
-found in a file/codebase.
-    code-path: The full path to the codebase/file you wish to parse.
-
-list-all-variables: Prints a list of all Fortran files, the code blocks
-they contain, and the variables those code blocks contain.
-    code-path: The full path to the codebase/file you wish to parse.
+Further information on how to use the CLI is available in the project's
+README file. There is also information on the format of the JSON and
+YAML serializer outputs available in the 'docs' directory at the root of
+the project.
 """
 
-# TODO: Given the help feature available as part of click, we may be
-# able to move the above docstring into the commands themselves, so that
-# they can be opened on the command line using the --help command.
-
 import os
-from typing import Optional
+from configparser import ConfigParser
 
 import click
 
@@ -37,46 +28,78 @@ from parsers.file_parser import FileParser
 from serializers import SerializerRegistry
 
 
-def check_output_path_file_extension(ctx: click.Context, param: click.Option, value: str) -> Optional[str]:
-    if not (output_format := ctx.params["output_format"]):
-        return None
-
-    if value.endswith(f".{output_format}"):
-        return value
-    else:
-        raise click.BadParameter(
-            f"Output path must end with the extension for your chosen output format ({output_format})."
-        )
-
-
-@click.group()
-@click.option(
-    "--code-path",
-    required=True,
-    prompt=True,
-    help="The full path to the codebase/file you wish to parse.",
-    type=click.Path(exists=True, resolve_path=True),
-)
-@click.option(
-    "--output-format",
-    type=click.Choice(SerializerRegistry.get_all_serializable_formats(), case_sensitive=False),
-    help="The format to serialize the results of a command to.",
-    is_eager=True,
-)
-@click.option(
-    "--output-path",
-    help="The location to output the results of a command to.",
-    callback=check_output_path_file_extension,
-    type=click.Path(writable=True, resolve_path=True),
-)
-@click.pass_context
-def cli(ctx: click.Context, code_path: str, output_format: str, output_path: str) -> None:
-    ctx.ensure_object(dict)
+def check_output_path_file_extension(output_format: str, output_path: str) -> None:
     if (output_format and not output_path) or (output_path and not output_format):
         raise click.BadParameter(
             "A format and path must both be specified if outputting "
             "the results of your command to an alternative format."
         )
+
+    if not output_path.endswith(f".{output_format}"):
+        raise click.BadParameter(
+            f"Output path must end with the extension for your chosen output format ({output_format})."
+        )
+
+
+def read_from_config(ctx: click.Context, param: click.Option, filename: str) -> None:
+    cfg = ConfigParser()
+    cfg.read(filename)
+    ctx.default_map = {}
+
+    for sect in cfg.sections():
+        command_path = sect.split(".")
+        if command_path[0] != "options":
+            continue
+
+        defaults = ctx.default_map
+        for command in command_path[1:]:
+            defaults = defaults.setdefault(command, {})
+
+        defaults.update(cfg[sect])
+
+
+@click.group(
+    epilog=(
+        "For more information about the available CLI commands, please "
+        "see the documentation available in the 'docs' directory."
+    )
+)
+@click.option(
+    "--code-path",
+    envvar="FORTRAN_CODE_PATH",
+    help="The full path to the codebase/file you wish to parse.",
+    prompt=True,
+    required=True,
+    type=click.Path(exists=True, resolve_path=True),
+)
+@click.option(
+    "--output-format",
+    envvar="OUTPUT_FORMAT",
+    help="The format to serialize the results of a command to.",
+    type=click.Choice(SerializerRegistry.get_all_serializable_formats(), case_sensitive=False),
+)
+@click.option(
+    "--output-path",
+    envvar="OUTPUT_PATH",
+    help="The location to output the serializer's results to.",
+    type=click.Path(writable=True, resolve_path=True),
+)
+@click.option(
+    "--config",
+    callback=read_from_config,
+    default="./fortran_cli_config.ini",
+    envvar="CLI_CONFIG_PATH",
+    expose_value=False,
+    help="The path to an INI file containing default values for the various CLI options.",
+    is_eager=True,
+    show_default=True,
+    type=click.Path(dir_okay=False),
+)
+@click.pass_context
+def cli(ctx: click.Context, code_path: str, output_format: str, output_path: str) -> None:
+    ctx.ensure_object(dict)
+    if output_format or output_path:
+        check_output_path_file_extension(output_format, output_path)
 
     parser = FileParser()
     if os.path.isdir(code_path):
@@ -92,7 +115,7 @@ def cli(ctx: click.Context, code_path: str, output_format: str, output_path: str
         ctx.obj["files"] = fortran_files
 
 
-@cli.command()
+@cli.command(short_help="Obtains the raw contents of the found Fortran file(s).")
 @click.pass_context
 def get_raw_contents(ctx: click.Context) -> None:
     if serializer := ctx.obj.get("serializer"):
@@ -112,7 +135,7 @@ def get_raw_contents(ctx: click.Context) -> None:
             click.echo(f"\t{line.content}")
 
 
-@cli.command()
+@cli.command(short_help="Counts the amount of code blocks and comments in the found Fortran file(s).")
 @click.pass_context
 def get_summary(ctx: click.Context) -> None:
     if serializer := ctx.obj.get("serializer"):
@@ -164,9 +187,10 @@ def get_summary(ctx: click.Context) -> None:
     click.echo(f"# of Comments: {comment_count}")
 
 
-@cli.command()
+@cli.command(short_help="Lists all the variables in the found Fortran file(s).")
 @click.option(
     "--no-duplicates",
+    envvar="NO_DUPLICATE_VARS",
     help=(
         "Stops variables found in the subprograms for a larger "
         "program unit from appearing more than once. Variables "
