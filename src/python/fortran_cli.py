@@ -1,25 +1,16 @@
 """
-The (currently) main entry point for the Fortran 90 code analyser.
+The main entry point for the Fortran 90 code analyser.
 
-Below is a list of the current commands available, as well as their
-arguments:
+In order to view information about the available CLI commands and their
+various options, run this file with the --help flag. It is also possible
+to view information about a specific command by running the command with
+the --help flag.
 
-get-raw-contents: Prints the raw contents of a specified file.
-    file-path: The full path to the file you wish to print to the
-      console.
-
-get-summary: Prints out a count of the different types of code blocks
-found in a file/codebase.
-    code-path: The full path to the codebase/file you wish to parse.
-
-list-all-variables: Prints a list of all Fortran files, the code blocks
-they contain, and the variables those code blocks contain.
-    code-path: The full path to the codebase/file you wish to parse.
+Further information on how to use the CLI is available in the project's
+README file. There is also information on the format of the JSON and
+YAML serializer outputs available in the 'docs' directory at the root of
+the project.
 """
-
-# TODO: Given the help feature available as part of click, we may be
-# able to move the above docstring into the commands themselves, so that
-# they can be opened on the command line using the --help command.
 
 import os
 from configparser import ConfigParser
@@ -67,7 +58,12 @@ def read_from_config(ctx: click.Context, param: click.Option, filename: str) -> 
         defaults.update(cfg[sect])
 
 
-@click.group()
+@click.group(
+    epilog=(
+        "For more information about the available CLI commands, please "
+        "see the documentation available in the 'docs' directory."
+    )
+)
 @click.option(
     "--code-path",
     envvar="FORTRAN_CODE_PATH",
@@ -85,13 +81,13 @@ def read_from_config(ctx: click.Context, param: click.Option, filename: str) -> 
 @click.option(
     "--output-path",
     envvar="OUTPUT_PATH",
-    help="The location to output the results of a command to.",
+    help="The location to output the serializer's results to.",
     type=click.Path(writable=True, resolve_path=True),
 )
 @click.option(
     "--config",
     callback=read_from_config,
-    default="fortran_cli_config.ini",
+    default="./fortran_cli_config.ini",
     envvar="CLI_CONFIG_PATH",
     expose_value=False,
     help="The path to an INI file containing default values for the various CLI options.",
@@ -119,7 +115,7 @@ def cli(ctx: click.Context, code_path: str, output_format: str, output_path: str
         ctx.obj["files"] = fortran_files
 
 
-@cli.command()
+@cli.command(short_help="Obtains the raw contents of the found Fortran file(s).")
 @click.pass_context
 def get_raw_contents(ctx: click.Context) -> None:
     if serializer := ctx.obj.get("serializer"):
@@ -139,7 +135,7 @@ def get_raw_contents(ctx: click.Context) -> None:
             click.echo(f"\t{line.content}")
 
 
-@cli.command()
+@cli.command(short_help="Counts the amount of code blocks and comments in the found Fortran file(s).")
 @click.pass_context
 def get_summary(ctx: click.Context) -> None:
     if serializer := ctx.obj.get("serializer"):
@@ -191,7 +187,7 @@ def get_summary(ctx: click.Context) -> None:
     click.echo(f"# of Comments: {comment_count}")
 
 
-@cli.command()
+@cli.command(short_help="Lists all the variables in the found Fortran file(s).")
 @click.option(
     "--no-duplicates",
     envvar="NO_DUPLICATE_VARS",
