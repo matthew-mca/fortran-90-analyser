@@ -268,3 +268,31 @@ class TestCodePatternRegex:
     )
     def test_variable_declaration(self, string, expect_match):
         self.assert_regex_result(CodePatternRegex.VARIABLE_DECLARATION, string, expect_match)
+
+    @pytest.mark.parametrize(
+        "string,expect_match",
+        [
+            ("IF (condition) THEN", True),
+            ("IF (condition) THEN    ! comment", True),
+            ("IF ( X .LT. 0.0 ) THEN ", True),
+            ("IF condition THEN", False),
+            ("IF (condition)", False),
+            ("test command; IF (condition) THEN; test command;", True),
+        ],
+    )
+    def test_if_block(self, string, expect_match):
+        self.assert_regex_result(CodePatternRegex.IF_BLOCK, string, expect_match)
+
+    @pytest.mark.parametrize(
+        "string,expect_match",
+        [
+            ("END IF", True),
+            ("END IF if_statement", False),
+            ("SEND IF", False),
+            ("end       IF", True),
+            ("test command; END IF; test command", True),
+            ("END IF ! comment  ", True),
+        ],
+    )
+    def test_if_block_end(self, string, expect_match):
+        self.assert_regex_result(CodePatternRegex.IF_BLOCK_END, string, expect_match)

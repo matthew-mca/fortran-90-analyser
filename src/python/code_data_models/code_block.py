@@ -101,9 +101,9 @@ class CodeBlock(ABC):
         if not hasattr(self, "subprograms") or not hasattr(self, "variables"):
             raise TypeError("Current code block type does not support subprograms and/or variables.")
 
-        all_subprogram_variables = []
+        all_subprogram_variables: List[Variable] = []
         for subprogram in self.subprograms:
-            all_subprogram_variables.extend(subprogram.variables)
+            all_subprogram_variables.extend(getattr(subprogram, "variables", []))
 
         return [var for var in self.variables if var not in all_subprogram_variables]
 

@@ -11,6 +11,8 @@ class CodePattern:
     END = "END"
     FUNCTION = "FUNCTION"
     FUNCTION_END = "FUNCTION_END"
+    IF_BLOCK = "IF_BLOCK"
+    IF_BLOCK_END = "IF_BLOCK_END"
     INTERFACE = "INTERFACE"
     INTERFACE_END = "INTERFACE_END"
     MODULE = "MODULE"
@@ -36,6 +38,8 @@ class CodePatternRegex:
         rf"\s*(;[\w\W]*)?(!.*)?$"
     )
     FUNCTION_END = r"^([\w\W]*;)?\s*END[ \t]*FUNCTION([ \t]+\w+)?\s*(;[\w\W]*)?(!.*)?$"
+    IF_BLOCK = r"^([\w\W]*;)?\s*IF[ \t]*\(.*\)[ \t]*THEN\s*(;[\w\W]*)?(!.*)?$"
+    IF_BLOCK_END = r"^([\w\W]*;)?\s*END[ \t]*IF\s*(;[\w\W]*)?(!.*)?$"
     INTERFACE = r"^([\w\W]*;)?\s*INTERFACE\s*(;[\w\W]*)?(!.*)?$"
     INTERFACE_END = r"^([\w\W]*;)?\s*END[ \t]*INTERFACE\s*(;[\w\W]*)?(!.*)?$"
     MODULE = r"^([\w\W]*;)?\s*MODULE[ \t]+\w+\s*(;[\w\W]*)?(!.*)?$"
