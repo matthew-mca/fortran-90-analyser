@@ -4,6 +4,7 @@ from typing import Iterable, List
 from code_data_models.code_block import CodeBlock
 from code_data_models.code_pattern import CodePattern, CodePatternRegex
 from code_data_models.code_statement import CodeStatement
+from code_data_models.fortran_do_loop import FortranDoLoop
 from code_data_models.fortran_function import FortranFunction
 from code_data_models.fortran_if_block import FortranIfBlock
 from code_data_models.fortran_interface import FortranInterface
@@ -19,6 +20,7 @@ from .digital_file import DigitalFile
 
 CODE_BLOCKS_THAT_SUPPORT_SUBPROGRAMS = [
     FortranFunction,
+    FortranDoLoop,
     FortranIfBlock,
     FortranModule,
     FortranProgram,
@@ -107,6 +109,8 @@ class FortranFile(DigitalFile):
         """
 
         code_patterns = [
+            (CodePattern.DO_LOOP, CodePatternRegex.DO_LOOP),
+            (CodePattern.DO_LOOP_END, CodePatternRegex.DO_LOOP_END),
             (CodePattern.FUNCTION, CodePatternRegex.FUNCTION),
             (CodePattern.FUNCTION_END, CodePatternRegex.FUNCTION_END),
             (CodePattern.IF_BLOCK, CodePatternRegex.IF_BLOCK),
@@ -130,6 +134,7 @@ class FortranFile(DigitalFile):
 
         stack = CodeParserStack()
         all_code_block_types = {
+            CodePattern.DO_LOOP: FortranDoLoop,
             CodePattern.FUNCTION: FortranFunction,
             CodePattern.IF_BLOCK: FortranIfBlock,
             CodePattern.INTERFACE: FortranInterface,

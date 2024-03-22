@@ -292,7 +292,38 @@ class TestCodePatternRegex:
             ("end       IF", True),
             ("test command; END IF; test command", True),
             ("END IF ! comment  ", True),
+            ("ENDIF", True),
+            ("END", False),
         ],
     )
     def test_if_block_end(self, string, expect_match):
         self.assert_regex_result(CodePatternRegex.IF_BLOCK_END, string, expect_match)
+
+    @pytest.mark.parametrize(
+        "string,expect_match",
+        [
+            ("DO WHILE (condition)", True),
+            ("DO i = start, end, step", True),
+            ("DO i = start, end", True),
+            ("while (condition) do", True),
+            ("DO 210 I = 1, 10", True),
+        ],
+    )
+    def test_do_loop(self, string, expect_match):
+        self.assert_regex_result(CodePatternRegex.DO_LOOP, string, expect_match)
+
+    @pytest.mark.parametrize(
+        "string,expect_match",
+        [
+            ("END DO", True),
+            ("END", False),
+            ("END DO do_loop", False),
+            ("SEND DO", False),
+            ("end       DO", True),
+            ("test command; END DO; test command", True),
+            ("END DO ! comment  ", True),
+            ("ENDDO", True),
+        ],
+    )
+    def test_do_loop_end(self, string, expect_match):
+        self.assert_regex_result(CodePatternRegex.DO_LOOP_END, string, expect_match)

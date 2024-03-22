@@ -8,6 +8,8 @@ ALL_RETURN_TYPES = "|".join([data_type.replace(" ", "[ \\t]+") for data_type in 
 class CodePattern:
     """The names of types of Fortran code blocks."""
 
+    DO_LOOP = "DO_LOOP"
+    DO_LOOP_END = "DO_LOOP_END"
     END = "END"
     FUNCTION = "FUNCTION"
     FUNCTION_END = "FUNCTION_END"
@@ -31,6 +33,12 @@ class CodePattern:
 class CodePatternRegex:
     """The regex patterns for types of Fortran code blocks."""
 
+    DO_LOOP = (
+        r"^([\w\W]*;)?\s*"
+        r"(DO[ \t]*WHILE[ \t]*\(.*\)|WHILE[ \t]*\(.*\)[ \t]*DO|DO([ \t]+\d*)?[ \t]+\w+[ \t]+=.+)"
+        r"\s*(;[\w\W]*)?(!.*)?$"
+    )
+    DO_LOOP_END = r"^([\w\W]*;)?\s*END[ \t]*DO\s*(;[\w\W]*)?(!.*)?$"
     FUNCTION = (  # This is one monstrous regex...
         rf"^([\w\W]*;)?\s*"
         rf"((RECURSIVE[ \t]+)?(({ALL_RETURN_TYPES})[ \t]+)?|(({ALL_RETURN_TYPES})[ \t]+)?(RECURSIVE[ \t]+)?)?"
