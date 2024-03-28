@@ -48,23 +48,26 @@ pip-sync requirements.txt requirements-dev.txt
 
 ## Usage
 
-The project is currently CLI-based, the source code for which is available in the `fortran_cli.py`
-file. In order to use it, run the file as a regular Python file, supplying whatever
-commands/subcommands and arguments needed.
+The project is CLI-based, the source code for which is available in the `fortran_cli.py` file. In
+order to use it, run the file as a regular Python file, supplying whatever commands/subcommands and
+options needed.
 
 This is what it looks like from the root of the project:
 
 ```
-python3 src/python/fortran_cli.py <commands/arguments>
+python3 src/python/fortran_cli.py <commands/options>
 ```
 
-To show an example, we will use the first command ever added to the analyser, `print-to-console`.
-This command takes the path to a Fortran 90 file and simply outputs its raw contents.
+To show an example, we will use the first command ever added to the analyser, `get-raw-contents`.
+This command takes the path to a Fortran 90 file and simply outputs its raw contents. There are
+certain options common to every command that are provided *before* specifying a command name, rather
+than after. The `--code-path` option is currently the one common option that is ***required*** in
+order to run a CLI command.
 
 So following the above format, an example run of this command looks like:
 
-```
-python3 src/python/fortran_cli.py print-to-console --file-path /Users/testuser/fortran/hello_world.f90
+```bash
+python3 src/python/fortran_cli.py --code-path /Users/testuser/fortran/hello_world.f90 get-raw-contents
 ```
 
 For a simple hello world program, the output to the terminal would look like the following:
@@ -75,40 +78,29 @@ PROGRAM hello_world
 END PROGRAM hello_world
 ```
 
-Success! We ran a command using the CLI. 
+Success! We ran a command using the CLI.
 
-For a list of all the commands available in the application, see the `fortran_cli.py` file; there is
-a docstring at the top of the file that lists all the commands available and what they do. This file
-uses the library [Click](https://click.palletsprojects.com/en/8.1.x/#) to build its CLI capability.
+It is also possible to output the results of a command to a file, rather than simply printing it to
+the console. This is done by passing the `--output-format` and `--output-path` options when running
+a command. The two formats currently supported are JSON and YAML. Information on the structure of
+the JSON and YAML outputs is available in the
+[serialiser-output-structure.md file](./docs/serialiser-output-structure.md).
+
+This file uses the library [Click](https://click.palletsprojects.com/en/8.1.x/#) to build its CLI
+capability. For a list of all the commands and options available in the application, simply run the
+`fortran_cli.py` file with the `--help` flag. There is also information available on the different
+ways to provide input to the application available in the
+[cli-options-usage.md file](./docs/cli-options-usage.md).
 
 ## Roadmap
 
-As it currently stands, there is a "release" branch with a snapshot of the state of the code
-available on the repository (`release/12-12-23`). This release contains the logic for parsing
-through files and picking out the code blocks that make up the file, with support for Fortran
-modules, programs, and types.
+As of the most recent version of this README, the project is nearing its deadline, at which point it
+will be assessed as part of my final year of university. There are then plans to make this
+application available to users who have a FORTRAN codebase available for scanning.
 
-There are two diagrams pictured below. The first is a class diagram showing the state of the code in
-the aforementioned release branch, while the second is a sequence diagram that shows the process of
-parsing a Fortran codebase:
-
-![A class diagram showing the state of the project as of 12/12/2023.](docs/images/fortran-parser-classes-12-12-23.png)
-
-![A sequence diagram showing the project's parsing logic.](docs/images/fortran-parsing-logic.png)
-
-Currently, the parsing does not go any deeper than code blocks, and is only available for the 3
-types of code blocks mentioned earlier. The aim of the next "release" is to have most types of code
-blocks supported and be able to parse deeper into these blocks (such as variables, function calls,
-etc). This logic can then be added into the `fortran_cli.py` file in the form of a few commands that
-the user can call.
-
-For the final version of the project, I hope to have a working analyser that can read through a
-given Fortran 90 codebase and report back metrics about the code that are then stored to some form
-of persistent storage, available for use through the project's CLI. I am also aiming to incorporate
-features such as a GUI and variable relationships if time permits.
-
-As the project progresses, this section will update with what is available in the project and what
-features I am planning to add in the near future.
+It is likely this project will also be put up on a public GitHub repository and will be looking for
+contributors once the project has been assessed, but this is unconfirmed. This section, as well as
+the `Contributing` section, will be updated as soon as more information is available.
 
 ## Contributing
 
@@ -147,4 +139,4 @@ These repositories allow for testing of the application on *real Fortran code*, 
 
 **Project Owner:** *[Matthew McAteer](https://github.com/matthew-mca)*
 
-**Last Updated:** *12/02/2024*
+**Last Updated:** *28/03/2024*
