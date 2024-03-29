@@ -121,7 +121,7 @@ class CodeBlock(ABC):
         Raises:
             TypeError: The object calling this function does not support
               subprograms. Certain child classes of CodeBlock do not
-              have these attributes.
+              have this attribute.
         """
 
         if not hasattr(self, "subprograms"):

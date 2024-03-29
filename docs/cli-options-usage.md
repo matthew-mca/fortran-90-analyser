@@ -27,6 +27,8 @@ The following list details the environment variable names for all of the options
 - **code-path:** `FORTRAN_CODE_PATH`
 - **output-format:** `OUTPUT_FORMAT`
 - **output-path:** `OUTPUT_PATH`
+- **top-level-blocks:** `TOP_LEVEL_BLOCKS`
+- **top-level-vars:** `TOP_LEVEL_VARS`
 - **config:** `CLI_CONFIG_PATH`
 - **no-duplicates:** `NO_DUPLICATE_VARS`
 
@@ -50,6 +52,10 @@ Below is an example that shows the format of a config file for the application:
 code_path = .
 output_format = json
 output_path = ./results.json
+
+[options.get-summary]
+top_level_blocks = true
+top_level_vars = false
 
 [options.list-all-variables]
 no_duplicates = true
