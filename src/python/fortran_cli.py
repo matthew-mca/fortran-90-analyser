@@ -13,17 +13,14 @@ the project.
 """
 
 import os
+from collections import defaultdict
 from configparser import ConfigParser
+from typing import Dict
 
 import click
 
 from code_data_models.code_block import CodeBlock
-from code_data_models.fortran_function import FortranFunction
-from code_data_models.fortran_interface import FortranInterface
-from code_data_models.fortran_module import FortranModule
-from code_data_models.fortran_program import FortranProgram
-from code_data_models.fortran_subroutine import FortranSubroutine
-from code_data_models.fortran_type import FortranType
+from code_data_models.variable import Variable
 from parsers.file_parser import FileParser
 from serializers import SerializerRegistry
 
@@ -135,12 +132,28 @@ def get_raw_contents(ctx: click.Context) -> None:
             click.echo(f"\t{line.content}")
 
 
-@cli.command(short_help="Counts the amount of code blocks and comments in the found Fortran file(s).")
+@cli.command(short_help="Counts the amount of code blocks, variables and comments in the found Fortran file(s).")
+@click.option(
+    "--top-level-blocks",
+    envvar="TOP_LEVEL_BLOCKS",
+    help="Does not include subprogram information in the summary.",
+    is_flag=True,
+)
+@click.option(
+    "--top-level-vars",
+    envvar="TOP_LEVEL_VARS",
+    help=(
+        "Does not include variable information for variables that are "
+        "found in a program unit's subprograms in the summary. This "
+        "flag has no effect if --top-level-blocks is not set."
+    ),
+    is_flag=True,
+)
 @click.pass_context
-def get_summary(ctx: click.Context) -> None:
+def get_summary(ctx: click.Context, top_level_blocks: bool, top_level_vars: bool) -> None:
     if serializer := ctx.obj.get("serializer"):
         try:
-            serializer.serialize_get_summary()
+            serializer.serialize_get_summary(top_level_blocks, top_level_vars)
             click.echo(f"Results serialized successfully to '{serializer.output_path}'.")
         except FileNotFoundError as e:
             click.echo(f"There was an error while serializing the result of get-summary: {str(e)}")
@@ -151,40 +164,62 @@ def get_summary(ctx: click.Context) -> None:
 
     fortran_file_count = len(ctx.obj["files"])
     comment_count = 0
-    function_count = 0
-    interface_count = 0
-    module_count = 0
-    program_count = 0
-    subroutine_count = 0
-    type_count = 0
+    found_blocks = []
+    found_variables = []
 
     for f90_file in ctx.obj["files"]:
-        comment_count += len([line for line in f90_file.contents if line.contains_comment])
+        found_blocks.extend(f90_file.components)
+        comment_count += sum(line.contains_comment for line in f90_file.contents)
 
-        for component in f90_file.components:
-            if isinstance(component, FortranFunction):
-                function_count += 1
-            elif isinstance(component, FortranInterface):
-                interface_count += 1
-            elif isinstance(component, FortranModule):
-                module_count += 1
-            elif isinstance(component, FortranProgram):
-                program_count += 1
-            elif isinstance(component, FortranSubroutine):
-                subroutine_count += 1
-            elif isinstance(component, FortranType):
-                type_count += 1
+    if not top_level_blocks:
+        subprograms = []
+        for code_block in found_blocks:
+            subprograms.extend(code_block.get_all_subprograms())
 
-    click.echo("Codebase parsed...")
-    click.echo()
+        found_blocks.extend(subprograms)
+
+    if not top_level_blocks or top_level_vars:
+        for block in found_blocks:
+            found_variables.extend(block.get_variables_not_in_subprograms())
+    else:
+        for block in found_blocks:
+            found_variables.extend(block.variables)
+
+    block_counts: Dict[str, int] = defaultdict(int)
+    for block in found_blocks:
+        class_name = type(block).__name__
+        block_counts[class_name] += 1
+
+    variable_counts = {}
+    for var_type in Variable.ALL_DATA_TYPES:
+        # We do 'in' instead of '==' here since some data types can have
+        # extra information as part of the type declaration, e.g
+        # 'INTEGER(I8)'.
+        variable_counts[var_type] = sum(var_type in var.data_type for var in found_variables)
+
+    click.echo("Codebase parsed...\n")
+
     click.echo(f"# of Fortran 90 files: {fortran_file_count}")
-    click.echo(f"# of Functions: {function_count}")
-    click.echo(f"# of Interfaces: {interface_count}")
-    click.echo(f"# of Modules: {module_count}")
-    click.echo(f"# of Programs: {program_count}")
-    click.echo(f"# of Subroutines: {subroutine_count}")
-    click.echo(f"# of Derived Types: {type_count}")
     click.echo(f"# of Comments: {comment_count}")
+
+    CODE_BLOCK_KEYS = [
+        "FortranDoLoop",
+        "FortranFunction",
+        "FortranIfBlock",
+        "FortranInterface",
+        "FortranModule",
+        "FortranProgram",
+        "FortranSubroutine",
+        "FortranType",
+    ]
+
+    click.echo("\nCode blocks found:")
+    for block_type in CODE_BLOCK_KEYS:
+        click.echo(f"\t{block_type}: {block_counts[block_type]}")
+
+    click.echo("\nVariables found:")
+    for var_type, count in variable_counts.items():
+        click.echo(f"\t{var_type}: {count}")
 
 
 @cli.command(short_help="Lists all the variables in the found Fortran file(s).")

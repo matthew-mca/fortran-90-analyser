@@ -41,12 +41,27 @@ different commands in the application.
 {
     "fileCount": int,
     "commentCount": int,
-    "functionCount": int,
-    "interfaceCount": int,
-    "moduleCount": int,
-    "programCount": int,
-    "subroutineCount": int,
-    "typeCount": int
+    "topLevelCodeBlocksOnly": boolean,
+    "topLevelVariablesOnly": boolean,
+    "codeBlockTypeSummary": {
+        "doLoopCount": int,
+        "functionCount": int,
+        "ifBlockCount": int,
+        "interfaceCount": int,
+        "moduleCount": int,
+        "programCount": int,
+        "subroutineCount": int,
+        "derivedTypeDeclarationCount": int
+    },
+    "variableDataTypeSummary": {
+        "characterCount": int,
+        "complexCount": int,
+        "doubleComplexCount": int,
+        "doublePrecisionCount": int,
+        "integerCount": int,
+        "logicalCount": int,
+        "realCount": int
+    }
 }
 ```
 
@@ -55,13 +70,26 @@ different commands in the application.
 | Property Name | Value | Description |
 |---|---|---|
 | fileCount | int | The number of FORTRAN files found during parsing. |
-| commentCount | int | The number of code comments found. |
-| functionCount | int | The number of functions found. |
-| interfaceCount | int | The number of interfaces found. |
-| moduleCount | int | The number of modules found. |
-| programCount | int | The number of programs found. |
-| subroutineCount | int | The number of subroutines found. |
-| typeCount | int | The number of derived type declarations found. |
+| commentCount | int | The number of commented lines of code. |
+| topLevelCodeBlocksOnly | boolean | Does not include subprogram information in the summary. |
+| topLevelVariablesOnly | boolean | Does not include variable information for variables that are found in a program unit's subprograms in the summary. Has no effect if topLevelCodeBlocksOnly is false. |
+| codeBlockTypeSummary | dict | A collection of information about the different types of FORTRAN code blocks found during parsing. |
+| doLoopCount | int | The number of DO loops. |
+| functionCount | int | The number of functions. |
+| ifBlockCount | int | The number of IF blocks. |
+| interfaceCount | int | The number of interfaces. |
+| moduleCount | int | The number of modules. |
+| programCount | int | The number of programs. |
+| subroutineCount | int | The number of subroutines. |
+| derivedTypeDeclarationCount | int | The number of derived type declarations. |
+| variableDataTypeSummary | dict | A collection of information about the different variable types found during parsing. |
+| characterCount | int | The number of CHARACTER variables. |
+| complexCount | int | The number of COMPLEX variables. |
+| doubleComplexCount | int | The number of DOUBLE COMPLEX variables. |
+| doublePrecisionCount | int | The number of DOUBLE PRECISION variables. |
+| integerCount | int | The number of INTEGER variables. |
+| logicalCount | int | The number of LOGICAL variables. |
+| realCount | int | The number of REAL variables. |
 
 ## list-all-variables
 

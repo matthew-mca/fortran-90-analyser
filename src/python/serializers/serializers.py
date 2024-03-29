@@ -42,8 +42,17 @@ class Serializer(ABC):
         pass
 
     @abstractmethod
-    def serialize_get_summary(self) -> None:
-        """Serializes the results of the get-summary command."""
+    def serialize_get_summary(self, top_level_blocks: bool, top_level_vars: bool) -> None:
+        """Serializes the results of the get-summary command.
+
+        Args:
+            top_level_blocks: Does not include subprogram information in
+              the summary.
+            top_level_vars: Does not include variable information for
+              variables that are found in a program unit's subprograms
+              in the summary. This value has no effect if the value
+              'top_level_blocks' is False.
+        """
         pass
 
     @abstractmethod
