@@ -1,7 +1,9 @@
 # flake8: noqa
 
 from .code_data_models.code_statement import random_code_statement
+from .code_data_models.fortran_do_loop import random_fortran_do_loop
 from .code_data_models.fortran_function import random_fortran_function
+from .code_data_models.fortran_if_block import random_fortran_if_block
 from .code_data_models.fortran_interface import random_fortran_interface
 from .code_data_models.fortran_module import random_fortran_module
 from .code_data_models.fortran_program import random_fortran_program

@@ -1,14 +1,9 @@
+from collections import defaultdict
 from typing import Any, Dict
 
 import yaml
 
 from code_data_models.code_block import CodeBlock
-from code_data_models.fortran_function import FortranFunction
-from code_data_models.fortran_interface import FortranInterface
-from code_data_models.fortran_module import FortranModule
-from code_data_models.fortran_program import FortranProgram
-from code_data_models.fortran_subroutine import FortranSubroutine
-from code_data_models.fortran_type import FortranType
 from code_data_models.variable import Variable
 
 from .serializers import Serializer, SerializerRegistry
@@ -56,34 +51,67 @@ class _YAMLSerializer(Serializer):
 
         self._write_yaml_to_file(output)
 
-    def serialize_get_summary(self) -> None:
+    def serialize_get_summary(self, top_level_blocks: bool, top_level_vars: bool) -> None:
         output: Dict[str, Any] = {}
 
         output["fileCount"] = len(self.fortran_files)
         output["commentCount"] = 0
-        output["functionCount"] = 0
-        output["interfaceCount"] = 0
-        output["moduleCount"] = 0
-        output["programCount"] = 0
-        output["subroutineCount"] = 0
-        output["typeCount"] = 0
+        found_blocks = []
+        found_variables = []
 
         for f90_file in self.fortran_files:
-            output["commentCount"] += len([line for line in f90_file.contents if line.contains_comment])
+            found_blocks.extend(f90_file.components)
+            output["commentCount"] += sum(line.contains_comment for line in f90_file.contents)
 
-            for component in f90_file.components:
-                if isinstance(component, FortranFunction):
-                    output["functionCount"] += 1
-                elif isinstance(component, FortranInterface):
-                    output["interfaceCount"] += 1
-                elif isinstance(component, FortranModule):
-                    output["moduleCount"] += 1
-                elif isinstance(component, FortranProgram):
-                    output["programCount"] += 1
-                elif isinstance(component, FortranSubroutine):
-                    output["subroutineCount"] += 1
-                elif isinstance(component, FortranType):
-                    output["typeCount"] += 1
+        output["topLevelCodeBlocksOnly"] = top_level_blocks
+        output["topLevelVariablesOnly"] = top_level_vars
+
+        if not top_level_blocks:
+            subprograms = []
+            for code_block in found_blocks:
+                subprograms.extend(code_block.get_all_subprograms())
+
+            found_blocks.extend(subprograms)
+
+        if not top_level_blocks or top_level_vars:
+            for block in found_blocks:
+                found_variables.extend(block.get_variables_not_in_subprograms())
+        else:
+            for block in found_blocks:
+                found_variables.extend(block.variables)
+
+        block_counts: Dict[str, int] = defaultdict(int)
+        for block in found_blocks:
+            class_name = type(block).__name__
+            block_counts[class_name] += 1
+
+        variable_counts = {}
+        for var_type in Variable.ALL_DATA_TYPES:
+            # We do 'in' instead of '==' here since some data types can have
+            # extra information as part of the type declaration, e.g
+            # 'INTEGER(I8)'.
+            variable_counts[var_type] = sum(var_type in var.data_type for var in found_variables)
+
+        output["codeBlockTypeSummary"] = {
+            "doLoopCount": block_counts["FortranDoLoop"],
+            "functionCount": block_counts["FortranFunction"],
+            "ifBlockCount": block_counts["FortranIfBlock"],
+            "interfaceCount": block_counts["FortranInterface"],
+            "moduleCount": block_counts["FortranModule"],
+            "programCount": block_counts["FortranProgram"],
+            "subroutineCount": block_counts["FortranSubroutine"],
+            "derivedTypeDeclarationCount": block_counts["FortranType"],
+        }
+
+        output["variableDataTypeSummary"] = {
+            "characterCount": variable_counts["CHARACTER"],
+            "complexCount": variable_counts["COMPLEX"],
+            "doubleComplexCount": variable_counts["DOUBLE COMPLEX"],
+            "doublePrecisionCount": variable_counts["DOUBLE PRECISION"],
+            "integerCount": variable_counts["INTEGER"],
+            "logicalCount": variable_counts["LOGICAL"],
+            "realCount": variable_counts["REAL"],
+        }
 
         self._write_yaml_to_file(output)
 

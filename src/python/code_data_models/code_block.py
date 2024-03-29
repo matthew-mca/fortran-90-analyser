@@ -107,6 +107,35 @@ class CodeBlock(ABC):
 
         return [var for var in self.variables if var not in all_subprogram_variables]
 
+    def get_all_subprograms(self) -> List[Self]:
+        """Gets a list of all subprograms inside of the code block.
+
+        This function gets all of the subprograms that can be found for
+        the code block, regardless of how deeply nested it is. Any and
+        all subprograms are included in the final list without any
+        nesting.
+
+        Returns:
+            A list of all the subprograms found within the code block.
+
+        Raises:
+            TypeError: The object calling this function does not support
+              subprograms. Certain child classes of CodeBlock do not
+              have these attributes.
+        """
+
+        if not hasattr(self, "subprograms"):
+            raise TypeError("Current code block type does not support subprograms.")
+
+        lower_level_programs = []
+        for program in getattr(self, "subprograms", []):
+            try:
+                lower_level_programs += program.get_all_subprograms()
+            except TypeError:
+                continue
+
+        return self.subprograms + lower_level_programs
+
     def _find_block_name(self, block_type: str) -> str:
         """Parses the code block's name from its declaration.
 

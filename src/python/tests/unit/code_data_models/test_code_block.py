@@ -1,9 +1,14 @@
 import pytest
 
 from code_data_models.code_block import CodeBlock
+from code_data_models.fortran_do_loop import FortranDoLoop
+from code_data_models.fortran_function import FortranFunction
+from code_data_models.fortran_if_block import FortranIfBlock
 from tests.object_factory import (
     random_code_statement,
+    random_fortran_do_loop,
     random_fortran_function,
+    random_fortran_if_block,
     random_fortran_interface,
     random_fortran_module,
     random_fortran_program,
@@ -245,3 +250,22 @@ class TestCodeBlock:
 
         with pytest.raises(TypeError):
             unsupported_code_block.get_variables_not_in_subprograms()
+
+    def test_get_all_subprograms(self):
+        test_do_loop = random_fortran_do_loop()
+        test_if_block = random_fortran_if_block()
+
+        test_function = random_fortran_function(
+            subprograms=[test_do_loop, test_if_block],
+        )
+
+        test_program = random_fortran_program(
+            subprograms=[test_function],
+        )
+
+        subprograms = test_program.get_all_subprograms()
+
+        assert len(subprograms) == 3
+        assert sum(isinstance(item, FortranDoLoop) for item in subprograms) == 1
+        assert sum(isinstance(item, FortranFunction) for item in subprograms) == 1
+        assert sum(isinstance(item, FortranIfBlock) for item in subprograms) == 1
