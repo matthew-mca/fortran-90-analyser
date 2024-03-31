@@ -1,4 +1,5 @@
 import os
+from pathlib import PurePath
 from typing import Generator, Optional, Union
 
 from file_data_models.digital_file import DigitalFile
@@ -6,7 +7,6 @@ from file_data_models.directory import Directory
 from file_data_models.fortran_file import FortranFile
 
 
-# TODO: Check that any working with file paths is safe for any OS
 class FileParser:
     """Parses the content of files and directories."""
 
@@ -25,7 +25,7 @@ class FileParser:
         """
 
         if root_dir_path:
-            path_from_root_dir = file_path.replace(f"{root_dir_path}/", "")
+            path_from_root_dir = file_path.replace(root_dir_path, "")
         else:
             path_from_root_dir = os.path.abspath(file_path)
 
@@ -56,7 +56,7 @@ class FileParser:
 
     def build_directory_tree(
         self,
-        dir_path: str,
+        dir_path: Union[str, PurePath],
         include_non_fortran: bool = True,
     ) -> Directory:
         """Builds out a representation of a specified directory.
@@ -75,19 +75,20 @@ class FileParser:
               file rather than a directory.
         """
 
-        dir_path = os.path.abspath(dir_path)  # Will resolve relative paths and leave absolute paths as is
+        # Will resolve relative paths and leave absolute paths as is.
+        dir_path = PurePath(os.path.abspath(dir_path))
 
         if not os.path.exists(dir_path):
             raise ValueError("Given path does not exist.")
         elif os.path.isfile(dir_path):
             raise ValueError("Specified path is a file, not a directory.")
 
-        root_dir_name = os.path.split(dir_path)[1]
+        root_dir_name = dir_path.parts[-1]
         directory_tree: Directory = Directory(root_dir_name)
         current = directory_tree  # We will use current to build the inner dicts within the tree
 
         for root, dirs, files in os.walk(dir_path):
-            working_dir_path = root.replace(dir_path, "")
+            working_dir_path = PurePath(root.replace(str(dir_path), ""))
 
             # By comparing the path to the directory we started in with
             # the path to where we are now, we can navigate to the
@@ -95,9 +96,9 @@ class FileParser:
             # files.
             if working_dir_path:
                 current = directory_tree
-                # We do not include the first item as it's an empty
-                # string
-                for level in working_dir_path.split("/")[1:]:
+                # We do not include the first item as it's not any sort
+                # of directory name
+                for level in working_dir_path.parts[1:]:
                     current = current.get_item(level)  # type: ignore[assignment]
 
             for directory_name in dirs:
@@ -106,7 +107,8 @@ class FileParser:
 
             for file_name in files:
                 if self.is_f90_file(file_name) or include_non_fortran:
-                    new_file = self.parse_file(f"{root}/{file_name}", dir_path)
+                    # new_file = self.parse_file(f"{root}/{file_name}", dir_path)
+                    new_file = self.parse_file(os.path.join(root, file_name), str(dir_path))
                     current.add_file(new_file)
 
         return directory_tree
