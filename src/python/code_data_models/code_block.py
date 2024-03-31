@@ -198,8 +198,6 @@ class CodeBlock(ABC):
                 # on the end of it... so now we search for it and
                 # remove.
                 if re.search(r"\(\d+\)", variable_name) is not None:
-                    # TODO: Add testing for this case when adding
-                    # integration testing
                     is_array = True
                     bracket_index = variable_name.index("(")
                     variable_name = variable_name[:bracket_index]

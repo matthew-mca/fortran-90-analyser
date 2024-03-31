@@ -24,8 +24,6 @@ class TestCodePatternRegex:
             ("    MODULE    test_module   ", True),
             ("\t MoDulE test_module", True),
             ("Bad MODULE test_module statement", False),
-            ("test command;  MODULE test_module; test command", True),
-            ("MODULE\ntest_module", False),
             ("MODULE test_module ! comment", True),
         ],
     )
@@ -47,8 +45,6 @@ class TestCodePatternRegex:
             ("do not end module test_module", False),
             ("test_module", False),
             ("MODULE; test_module", False),
-            ("test command;  END MODULE test_module; test command", True),
-            ("END\nMODULE\ntest_module", False),
             ("END MODULE test_module   !!  comment", True),
         ],
     )
@@ -59,15 +55,10 @@ class TestCodePatternRegex:
         "string,expect_match",
         [
             ("PROGRAM test_program", True),
-            ("program test_program\n", True),
             ("    program   test_program   ", True),
             ("program", False),
             ("test_program", False),
-            ("PROGRAM\ntest_program", False),
-            ("PROGRAM test_program;   END", True),
             ("PROGRAM; test_program", False),
-            ("test command;  PROGRAM test_program; test command", True),
-            ("test command\nPROGRAM test_program", False),
             # The above case is likely valid from the POV of the compiler,
             # but given our parsing logic we shouldn't end up encountering it.
             ("PROGRAM test_program ! comment  ", True),
@@ -93,9 +84,6 @@ class TestCodePatternRegex:
             ("ENDPROGRAMtest_program", False),
             ("ENDPROGRAM test_program", True),
             ("bad end", False),
-            ("END test_program\n", False),
-            ("test command;  END PROGRAM test_program; test command", True),
-            ("END\nPROGRAM\ntest_program", False),
             ("END PROGRAM test_program !! comment", True),
         ],
     )
@@ -110,8 +98,6 @@ class TestCodePatternRegex:
             ("\t TYPE  ", False),
             ("  my_type   ", False),
             ("TYPE name with spaces", False),
-            ("test command;  TYPE test_type; test command", True),
-            ("TYPE\ntest_type", False),
             ("TYPE test_type !! comment", True),
         ],
     )
@@ -130,8 +116,6 @@ class TestCodePatternRegex:
             ("ENDTYPE", True),
             ("SEND TYPE test_type", False),
             ("ENDTYPEtest_type", False),
-            ("test command;  END type test_type; test command", True),
-            ("END\nTYPE\ntest_type", False),
             ("END TYPE test_type ! comment", True),
         ],
     )
@@ -150,8 +134,6 @@ class TestCodePatternRegex:
             ("ENDFUNCTION", True),
             ("SEND FUNCTION test_function", False),
             ("ENDFUNCTIONtestfunction", False),
-            ("test command;  END function test_function; test command", True),
-            ("END\nFUNCTION\ntest_function", False),
             ("END FUNCTION ! comment", True),
         ],
     )
@@ -170,8 +152,6 @@ class TestCodePatternRegex:
             ("ENDSUBROUTINE", True),
             ("SEND SUBROUTINE test_subroutine", False),
             ("ENDSUBROUTINEtestsubroutine", False),
-            ("test command;  END subroutine test_subroutine; test command", True),
-            ("END\nSUBROUTINE\ntest_subroutine", False),
             ("END SUBROUTINE ! comment ", True),
         ],
     )
@@ -184,10 +164,8 @@ class TestCodePatternRegex:
             ("REAL FUNCTION MY_TEST_FUNCTION(test_arg1, TEST_ARG2,TEST_ARG3)", True),
             ("COMPLEX     FUNCTION     MY_TEST_FUNCTION()", True),
             ("INTEGER FUNCTION MY_TEST_FUNCTION", False),
-            ("test command; LOGICAL FUNCTION TEST_FUNCTION(ARG_1, ARG_2); test command", True),
             ("DOUBLE    PRECISION    FUNCTION TEST_FUNCTION(ARG)", True),
             ("FUNCTION test_function (arg_1, arg_2)", True),
-            ("REAL\nFUNCTION\nTEST_FUNCTION()", False),
             ("DOUBLE COMPLEX FUNCTION()", False),
             ("function test_function (arg_1, arg_2) result(result_var)", True),
             ("COMPLEX FUNCTION MY_TEST_FUNCTION() ! comment", True),
@@ -205,10 +183,8 @@ class TestCodePatternRegex:
             ("SUBROUTINE TEST_SUBROUTINE (test_arg1, TEST_ARG2,TEST_ARG3)", True),
             ("SUBROUTINE     test_subroutine()", True),
             ("SUBROUTINE TEST_SUBROUTINE", False),
-            ("test command; SUBROUTINE TEST_SUBROUTINE(ARG_1, ARG_2); test command", True),
             ("SUBROUTINE TEST_SUBROUTINE", False),
             ("INTEGER SUBROUTINE TEST_SUBROUTINE(ARG_1, ARG_2)", False),
-            ("SUBROUTINE\nTEST_SUBROUTINE()", False),
             ("SUBROUTINE ()", False),
             ("SUBROUTINE TEST_SUBROUTINE() ! comment", True),
             ("RECURSIVE SUBROUTINE test_subroutine(arg_1)", True),
@@ -221,7 +197,6 @@ class TestCodePatternRegex:
         "string,expect_match",
         [
             ("  INTERFACE   ", True),
-            ("test command; INTERFACE; test command", True),
             ("INTERFACE test_interface", False),
             ("NEW INTERFACE", False),
             ("INTERFACE ! comment", True),
@@ -237,7 +212,6 @@ class TestCodePatternRegex:
             ("END INTERFACE test_inferface", False),
             ("SEND INTERFACE", False),
             ("end       INTERFACE", True),
-            ("test command; END INTERFACE; test command", True),
             ("END INTERFACE ! comment  ", True),
         ],
     )
@@ -277,7 +251,6 @@ class TestCodePatternRegex:
             ("IF ( X .LT. 0.0 ) THEN ", True),
             ("IF condition THEN", False),
             ("IF (condition)", False),
-            ("test command; IF (condition) THEN; test command;", True),
         ],
     )
     def test_if_block(self, string, expect_match):
@@ -290,7 +263,6 @@ class TestCodePatternRegex:
             ("END IF if_statement", False),
             ("SEND IF", False),
             ("end       IF", True),
-            ("test command; END IF; test command", True),
             ("END IF ! comment  ", True),
             ("ENDIF", True),
             ("END", False),
@@ -320,7 +292,6 @@ class TestCodePatternRegex:
             ("END DO do_loop", False),
             ("SEND DO", False),
             ("end       DO", True),
-            ("test command; END DO; test command", True),
             ("END DO ! comment  ", True),
             ("ENDDO", True),
         ],

@@ -27,40 +27,36 @@ class CodePattern:
     TYPE_END = "TYPE_END"
 
 
-# TODO: With the line splitting logic now present in our parsing, are
-# the start and end portions of each regex that allow for semicolons
-# even needed anymore?
 class CodePatternRegex:
     """The regex patterns for types of Fortran code blocks."""
 
-    DO_LOOP = (
-        r"^([\w\W]*;)?\s*"
-        r"(DO[ \t]*WHILE[ \t]*\(.*\)|WHILE[ \t]*\(.*\)[ \t]*DO|DO([ \t]+\d*)?[ \t]+\w+[ \t]+=.+)"
-        r"\s*(;[\w\W]*)?(!.*)?$"
+    # These used to be required pieces of every pattern until the
+    # addition of logic that now splits lines with semicolons into
+    # distinct commands during parsing. Who knows, maybe these may get
+    # used again some day, so going to leave them here...
+    _SEMICOLON_BEFORE = r"([\w\W]*;)?"
+    _SEMICOLON_AFTER = r"(;[\w\W]*)?"
+
+    DO_LOOP = r"^\s*(DO\s*WHILE\s*\(.*\)|WHILE\s*\(.*\)\s*DO|DO(\s+\d*)?\s+\w+\s+=.+)\s*(!.*)?$"
+    DO_LOOP_END = r"^\s*END\s*DO\s*(!.*)?$"
+    FUNCTION = (
+        rf"^\s*((RECURSIVE\s+)?(({ALL_RETURN_TYPES})\s+)?|(({ALL_RETURN_TYPES})\s+)?(RECURSIVE\s+)?)?"
+        rf"FUNCTION\s+\w+\s*\([ \w\,]*\)(\s+RESULT\s*\([ \w\,]*\))?\s*(!.*)?$"
     )
-    DO_LOOP_END = r"^([\w\W]*;)?\s*END[ \t]*DO\s*(;[\w\W]*)?(!.*)?$"
-    FUNCTION = (  # This is one monstrous regex...
-        rf"^([\w\W]*;)?\s*"
-        rf"((RECURSIVE[ \t]+)?(({ALL_RETURN_TYPES})[ \t]+)?|(({ALL_RETURN_TYPES})[ \t]+)?(RECURSIVE[ \t]+)?)?"
-        rf"FUNCTION[ \t]+\w+[ \t]*\([ \w\,]*\)([ \t]+RESULT[ \t]*\([ \w\,]*\))?"
-        rf"\s*(;[\w\W]*)?(!.*)?$"
-    )
-    FUNCTION_END = r"^([\w\W]*;)?\s*END[ \t]*FUNCTION([ \t]+\w+)?\s*(;[\w\W]*)?(!.*)?$"
-    IF_BLOCK = r"^([\w\W]*;)?\s*IF[ \t]*\(.*\)[ \t]*THEN\s*(;[\w\W]*)?(!.*)?$"
-    IF_BLOCK_END = r"^([\w\W]*;)?\s*END[ \t]*IF\s*(;[\w\W]*)?(!.*)?$"
-    INTERFACE = r"^([\w\W]*;)?\s*INTERFACE\s*(;[\w\W]*)?(!.*)?$"
-    INTERFACE_END = r"^([\w\W]*;)?\s*END[ \t]*INTERFACE\s*(;[\w\W]*)?(!.*)?$"
-    MODULE = r"^([\w\W]*;)?\s*MODULE[ \t]+\w+\s*(;[\w\W]*)?(!.*)?$"
-    MODULE_END = r"^([\w\W]*;)?\s*END([ \t]*MODULE([ \t]+\w+)?)?\s*(;[\w\W]*)?(!.*)?$"
-    PROGRAM = r"^([\w\W]*;)?\s*PROGRAM[ \t]+\w+\s*(;[\w\W]*)?(!.*)?$"
-    PROGRAM_END = r"^([\w\W]*;)?\s*END([ \t]*PROGRAM([ \t]+\w+)?)?\s*(;[\w\W]*)?(!.*)?$"
-    SUBROUTINE = r"^([\w\W]*;)?\s*(RECURSIVE[ \t]+)?SUBROUTINE[ \t]+\w+[ \t]*\([ \w\,]*\)\s*(;[\w\W]*)?(!.*)?$"
-    SUBROUTINE_END = r"^([\w\W]*;)?\s*END[ \t]*SUBROUTINE([ \t]+\w+)?\s*(;[\w\W]*)?(!.*)?$"
-    TYPE = r"^([\w\W]*;)?\s*TYPE[ \t]+\w+\s*(;[\w\W]*)?(!.*)?$"
-    TYPE_END = r"^([\w\W]*;)?\s*END[ \t]*TYPE([ \t]+\w+)?\s*(;[\w\W]*)?(!.*)?$"
+    FUNCTION_END = r"^\s*END\s*FUNCTION(\s+\w+)?\s*(!.*)?$"
+    IF_BLOCK = r"^\s*IF\s*\(.*\)\s*THEN\s*(!.*)?$"
+    IF_BLOCK_END = r"^\s*END\s*IF\s*(!.*)?$"
+    INTERFACE = r"^\s*INTERFACE\s*(!.*)?$"
+    INTERFACE_END = r"^\s*END\s*INTERFACE\s*(!.*)?$"
+    MODULE = r"^\s*MODULE\s+\w+\s*(!.*)?$"
+    MODULE_END = r"^\s*END(\s*MODULE(\s+\w+)?)?\s*(!.*)?$"
+    PROGRAM = r"^\s*PROGRAM\s+\w+\s*(!.*)?$"
+    PROGRAM_END = r"^\s*END(\s*PROGRAM(\s+\w+)?)?\s*(!.*)?$"
+    SUBROUTINE = r"^\s*(RECURSIVE\s+)?SUBROUTINE\s+\w+\s*\([ \w\,]*\)\s*(!.*)?$"
+    SUBROUTINE_END = r"^\s*END\s*SUBROUTINE(\s+\w+)?\s*(!.*)?$"
+    TYPE = r"^\s*TYPE\s+\w+\s*(!.*)?$"
+    TYPE_END = r"^\s*END\s*TYPE(\s+\w+)?\s*(!.*)?$"
     VARIABLE_DECLARATION = (
-        rf"^([\w\W]*;)?\s*"
-        rf"({ALL_RETURN_TYPES}|TYPE\(.*\)).*::\s*\w{{1,31}}(\(\d+\))?(\*\d+)?(\s*=.*)?"
-        rf"(,\s*\w{{1,31}}(\(\d+\))?(\*\d+)?(\s*=.*)?)*"
-        rf"\s*(;[\w\W]*)?(!.*)?$"
+        rf"^\s*({ALL_RETURN_TYPES}|TYPE\(.*\)).*::\s*\w{{1,31}}(\(\d+\))?(\*\d+)?(\s*=.*)?"
+        rf"(,\s*\w{{1,31}}(\(\d+\))?(\*\d+)?(\s*=.*)?)*\s*(!.*)?$"
     )

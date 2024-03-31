@@ -4,6 +4,7 @@ from code_data_models.code_block import CodeBlock
 from code_data_models.fortran_do_loop import FortranDoLoop
 from code_data_models.fortran_function import FortranFunction
 from code_data_models.fortran_if_block import FortranIfBlock
+from code_data_models.fortran_interface import FortranInterface
 from tests.object_factory import (
     random_code_statement,
     random_fortran_do_loop,
@@ -258,14 +259,24 @@ class TestCodeBlock:
         test_function = random_fortran_function(
             subprograms=[test_do_loop, test_if_block],
         )
+        # Add an interface to check the function doesn't fall over when
+        # one of the subprograms doesn't itself support subprograms
+        test_interface = random_fortran_interface()
 
         test_program = random_fortran_program(
-            subprograms=[test_function],
+            subprograms=[test_function, test_interface],
         )
 
         subprograms = test_program.get_all_subprograms()
 
-        assert len(subprograms) == 3
+        assert len(subprograms) == 4
         assert sum(isinstance(item, FortranDoLoop) for item in subprograms) == 1
         assert sum(isinstance(item, FortranFunction) for item in subprograms) == 1
         assert sum(isinstance(item, FortranIfBlock) for item in subprograms) == 1
+        assert sum(isinstance(item, FortranInterface) for item in subprograms) == 1
+
+    def test_get_all_subprograms_type_error(self):
+        unsupported_code_block = random_fortran_type()
+
+        with pytest.raises(TypeError):
+            unsupported_code_block.get_all_subprograms()
