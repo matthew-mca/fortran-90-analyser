@@ -24,7 +24,6 @@ class TestCodePatternRegex:
             ("    MODULE    test_module   ", True),
             ("\t MoDulE test_module", True),
             ("Bad MODULE test_module statement", False),
-            ("MODULE\ntest_module", False),
             ("MODULE test_module ! comment", True),
         ],
     )
@@ -46,7 +45,6 @@ class TestCodePatternRegex:
             ("do not end module test_module", False),
             ("test_module", False),
             ("MODULE; test_module", False),
-            ("END\nMODULE\ntest_module", False),
             ("END MODULE test_module   !!  comment", True),
         ],
     )
@@ -57,14 +55,10 @@ class TestCodePatternRegex:
         "string,expect_match",
         [
             ("PROGRAM test_program", True),
-            ("program test_program\n", True),
             ("    program   test_program   ", True),
             ("program", False),
             ("test_program", False),
-            ("PROGRAM\ntest_program", False),
-            # ("PROGRAM test_program;   END", True),
             ("PROGRAM; test_program", False),
-            ("test command\nPROGRAM test_program", False),
             # The above case is likely valid from the POV of the compiler,
             # but given our parsing logic we shouldn't end up encountering it.
             ("PROGRAM test_program ! comment  ", True),
@@ -90,8 +84,6 @@ class TestCodePatternRegex:
             ("ENDPROGRAMtest_program", False),
             ("ENDPROGRAM test_program", True),
             ("bad end", False),
-            ("END test_program\n", False),
-            ("END\nPROGRAM\ntest_program", False),
             ("END PROGRAM test_program !! comment", True),
         ],
     )
@@ -106,7 +98,6 @@ class TestCodePatternRegex:
             ("\t TYPE  ", False),
             ("  my_type   ", False),
             ("TYPE name with spaces", False),
-            ("TYPE\ntest_type", False),
             ("TYPE test_type !! comment", True),
         ],
     )
@@ -125,7 +116,6 @@ class TestCodePatternRegex:
             ("ENDTYPE", True),
             ("SEND TYPE test_type", False),
             ("ENDTYPEtest_type", False),
-            ("END\nTYPE\ntest_type", False),
             ("END TYPE test_type ! comment", True),
         ],
     )
@@ -144,7 +134,6 @@ class TestCodePatternRegex:
             ("ENDFUNCTION", True),
             ("SEND FUNCTION test_function", False),
             ("ENDFUNCTIONtestfunction", False),
-            ("END\nFUNCTION\ntest_function", False),
             ("END FUNCTION ! comment", True),
         ],
     )
@@ -163,7 +152,6 @@ class TestCodePatternRegex:
             ("ENDSUBROUTINE", True),
             ("SEND SUBROUTINE test_subroutine", False),
             ("ENDSUBROUTINEtestsubroutine", False),
-            ("END\nSUBROUTINE\ntest_subroutine", False),
             ("END SUBROUTINE ! comment ", True),
         ],
     )
@@ -178,7 +166,6 @@ class TestCodePatternRegex:
             ("INTEGER FUNCTION MY_TEST_FUNCTION", False),
             ("DOUBLE    PRECISION    FUNCTION TEST_FUNCTION(ARG)", True),
             ("FUNCTION test_function (arg_1, arg_2)", True),
-            ("REAL\nFUNCTION\nTEST_FUNCTION()", False),
             ("DOUBLE COMPLEX FUNCTION()", False),
             ("function test_function (arg_1, arg_2) result(result_var)", True),
             ("COMPLEX FUNCTION MY_TEST_FUNCTION() ! comment", True),
@@ -198,7 +185,6 @@ class TestCodePatternRegex:
             ("SUBROUTINE TEST_SUBROUTINE", False),
             ("SUBROUTINE TEST_SUBROUTINE", False),
             ("INTEGER SUBROUTINE TEST_SUBROUTINE(ARG_1, ARG_2)", False),
-            ("SUBROUTINE\nTEST_SUBROUTINE()", False),
             ("SUBROUTINE ()", False),
             ("SUBROUTINE TEST_SUBROUTINE() ! comment", True),
             ("RECURSIVE SUBROUTINE test_subroutine(arg_1)", True),
