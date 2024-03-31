@@ -107,7 +107,6 @@ class FileParser:
 
             for file_name in files:
                 if self.is_f90_file(file_name) or include_non_fortran:
-                    # new_file = self.parse_file(f"{root}/{file_name}", dir_path)
                     new_file = self.parse_file(os.path.join(root, file_name), str(dir_path))
                     current.add_file(new_file)
 
