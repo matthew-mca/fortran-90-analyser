@@ -23,6 +23,7 @@ class FileParser:
             A file object. If the file is a Fortran file, its contents
             are also included.
         """
+
         if root_dir_path:
             path_from_root_dir = file_path.replace(f"{root_dir_path}/", "")
         else:
@@ -81,8 +82,6 @@ class FileParser:
         elif os.path.isfile(dir_path):
             raise ValueError("Specified path is a file, not a directory.")
 
-        # TODO: This logic will fall over if the user provides a dir
-        # path ending in a slash
         root_dir_name = os.path.split(dir_path)[1]
         directory_tree: Directory = Directory(root_dir_name)
         current = directory_tree  # We will use current to build the inner dicts within the tree

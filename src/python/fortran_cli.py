@@ -122,7 +122,7 @@ def get_raw_contents(ctx: click.Context) -> None:
         except FileNotFoundError as e:
             click.echo(f"There was an error while serializing the result of get-raw-contents: {str(e)}")
         except Exception:
-            click.echo("An unknown error occurred while serialzing the result of get-raw-contents.")
+            click.echo("An unknown error occurred while serializing the result of get-raw-contents.")
 
         return
 
@@ -158,7 +158,7 @@ def get_summary(ctx: click.Context, top_level_blocks: bool, top_level_vars: bool
         except FileNotFoundError as e:
             click.echo(f"There was an error while serializing the result of get-summary: {str(e)}")
         except Exception:
-            click.echo("An unknown error occurred while serialzing the result of get-summary.")
+            click.echo("An unknown error occurred while serializing the result of get-summary.")
 
         return
 
@@ -244,7 +244,7 @@ def list_all_variables(ctx: click.Context, no_duplicates: bool) -> None:
         except FileNotFoundError as e:
             click.echo(f"There was an error while serializing the result of list-all-variables: {str(e)}")
         except Exception:
-            click.echo("An unknown error occurred while serialzing the result of list-all-variables.")
+            click.echo("An unknown error occurred while serializing the result of list-all-variables.")
 
         return
 
