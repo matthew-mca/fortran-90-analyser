@@ -208,7 +208,7 @@ class CodeBlock(ABC):
                 for line in self.contents[content_index + 1 :]:
                     # FORTRAN variable names are case insensitive, so we
                     # can ignore casing during this search.
-                    if re.search(rf"\b{variable_name}\b", line.content, re.IGNORECASE):
+                    if re.search(rf"\b{re.escape(variable_name)}\b", line.content, re.IGNORECASE):
                         possibly_unused = False
 
                 found_variables.append(
