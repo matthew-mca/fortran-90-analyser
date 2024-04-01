@@ -206,7 +206,9 @@ class CodeBlock(ABC):
                 # there is a possibility the variable is unused
                 possibly_unused = True
                 for line in self.contents[content_index + 1 :]:
-                    if re.search(rf"\b{variable_name}\b", line.content):
+                    # FORTRAN variable names are case insensitive, so we
+                    # can ignore casing during this search.
+                    if re.search(rf"\b{variable_name}\b", line.content, re.IGNORECASE):
                         possibly_unused = False
 
                 found_variables.append(
