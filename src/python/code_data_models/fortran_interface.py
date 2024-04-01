@@ -13,8 +13,9 @@ class FortranInterface(CodeBlock):
         contents: The lines of code that make up the interface.
     """
 
-    def __init__(self, parent_file_path: str, contents: List[CodeStatement]) -> None:
+    def __init__(self, parent_file_path: str, contents: List[CodeStatement], subprograms: List[CodeBlock]) -> None:
         """Initialises an interface object."""
 
         super().__init__(parent_file_path, contents)
         self.block_name = self._find_block_name("INTERFACE")
+        self.subprograms = subprograms
