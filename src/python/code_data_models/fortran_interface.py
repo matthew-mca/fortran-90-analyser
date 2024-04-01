@@ -17,3 +17,4 @@ class FortranInterface(CodeBlock):
         """Initialises an interface object."""
 
         super().__init__(parent_file_path, contents)
+        self.block_name = self._find_block_name("INTERFACE")
