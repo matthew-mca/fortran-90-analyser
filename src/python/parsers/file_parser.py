@@ -1,3 +1,4 @@
+import logging
 import os
 from pathlib import PurePath
 from typing import Generator, Optional, Union
@@ -5,6 +6,24 @@ from typing import Generator, Optional, Union
 from file_data_models.digital_file import DigitalFile
 from file_data_models.directory import Directory
 from file_data_models.fortran_file import FortranFile
+
+logger = logging.getLogger("FILE_PARSER")
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter("| [%(levelname)s] %(asctime)s | %(message)s")
+
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
+
+file_handler = logging.FileHandler("file_parser_errors.log")
+file_handler.setLevel(logging.ERROR)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
+file_handler2 = logging.FileHandler("file_parser.log")
+file_handler2.setLevel(logging.INFO)
+file_handler2.setFormatter(formatter)
+logger.addHandler(file_handler2)
 
 
 class FileParser:
@@ -29,11 +48,25 @@ class FileParser:
         else:
             path_from_root_dir = os.path.abspath(file_path)
 
-        if not self.is_f90_file(file_path):
-            return DigitalFile(path_from_root_dir)
-        else:
+        if self.is_f90_file(file_path):
+            logger.info("Parsing FORTRAN file '%s'...", path_from_root_dir)
             file_contents = self.parse_file_contents(file_path)
-            return FortranFile(path_from_root_dir, file_contents)
+            try:
+                new_file = FortranFile(path_from_root_dir, file_contents)
+            except Exception as e:
+                if os.environ.get("RAISE_PARSING_ERRORS", "").lower() == "true":
+                    raise e
+
+                logger.error(
+                    "Something went wrong while parsing FORTRAN file '%s'. Storing minimal data.",
+                    path_from_root_dir,
+                )
+                new_file = DigitalFile(path_from_root_dir, failed_fortran_parse=True)
+        else:
+            logger.info("Parsing file '%s'...", path_from_root_dir)
+            new_file = DigitalFile(path_from_root_dir)
+
+        return new_file
 
     def parse_file_contents(self, file_path: str) -> Generator[str, None, None]:
         """Parses the contents of the file.
@@ -57,14 +90,14 @@ class FileParser:
     def build_directory_tree(
         self,
         dir_path: Union[str, PurePath],
-        include_non_fortran: bool = True,
+        fortran_only: bool = True,
     ) -> Directory:
         """Builds out a representation of a specified directory.
 
         Args:
             dir_path: The path to the directory.
-            include_non_fortran: A flag that determines whether any
-              non-Fortran file objects are included in the final result.
+            fortran_only: A flag that determines whether any non-Fortran
+              file objects are included in the final result.
 
         Returns:
             A directory populated with all the files and subdirectories
@@ -106,7 +139,7 @@ class FileParser:
                 current.add_subdirectory(new_directory)
 
             for file_name in files:
-                if self.is_f90_file(file_name) or include_non_fortran:
+                if self.is_f90_file(file_name) or not fortran_only:
                     new_file = self.parse_file(os.path.join(root, file_name), str(dir_path))
                     current.add_file(new_file)
 
@@ -119,8 +152,14 @@ class FileParser:
             file_path: The path to the file.
 
         Returns:
-            A boolean that is True if the file has a .f90 extension,
-            otherwise False.
+            A boolean that is True if the file has a valid FORTRAN
+            extension, otherwise False.
         """
 
-        return file_path.endswith(".f90")
+        valid_f90_extensions = [".f90"]
+        # Some of these file extensions are more unstable than standard
+        # lowercase .f90
+        if os.environ.get("ADDITIONAL_FORTRAN_EXTENSIONS_BETA", "") == "true":
+            valid_f90_extensions.extend([".f", ".F90", ".F"])
+
+        return any(file_path.endswith(extension) for extension in valid_f90_extensions)

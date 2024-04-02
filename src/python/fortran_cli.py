@@ -92,24 +92,30 @@ def read_from_config(ctx: click.Context, param: click.Option, filename: str) -> 
     show_default=True,
     type=click.Path(dir_okay=False),
 )
+@click.option(
+    "--fortran-only",
+    envvar="FORTRAN_ONLY",
+    help="Excludes non-FORTRAN files from parsing.",
+    is_flag=True,
+)
 @click.pass_context
-def cli(ctx: click.Context, code_path: str, output_format: str, output_path: str) -> None:
+def cli(ctx: click.Context, code_path: str, output_format: str, output_path: str, fortran_only: bool) -> None:
     ctx.ensure_object(dict)
     if output_format or output_path:
         check_output_path_file_extension(output_format, output_path)
 
     parser = FileParser()
     if os.path.isdir(code_path):
-        codebase = parser.build_directory_tree(code_path)
-        fortran_files = codebase.get_all_fortran_files()
+        codebase = parser.build_directory_tree(code_path, fortran_only)
+        collected_files = codebase.get_all_files()
     else:
-        fortran_files = [parser.parse_file(code_path)]
+        collected_files = [parser.parse_file(code_path)]
 
     if output_format:
-        serializer = SerializerRegistry.get_serializer(output_format.lower(), output_path, fortran_files)
+        serializer = SerializerRegistry.get_serializer(output_format.lower(), output_path, collected_files)
         ctx.obj["serializer"] = serializer
     else:
-        ctx.obj["files"] = fortran_files
+        ctx.obj["files"] = collected_files
 
 
 @cli.command(short_help="Obtains the raw contents of the found Fortran file(s).")

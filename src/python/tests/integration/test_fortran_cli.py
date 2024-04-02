@@ -14,7 +14,7 @@ class TestFortranCLI:
 
     @pytest.fixture
     def configured_runner(self, live_data_path):
-        return CliRunner(env={"FORTRAN_CODE_PATH": live_data_path})
+        return CliRunner(env={"FORTRAN_CODE_PATH": live_data_path, "FORTRAN_ONLY": "true"})
 
     @pytest.fixture
     def live_data_path(self):
@@ -86,6 +86,7 @@ class TestFortranCLI:
         env_runner = CliRunner(
             env={
                 "FORTRAN_CODE_PATH": live_data_path,
+                "FORTRAN_ONLY": "true",
             }
         )
 
@@ -102,6 +103,7 @@ class TestFortranCLI:
             f.write(f"code_path = {live_data_path}\n")
             f.write(f"output_path = {output_path}\n")
             f.write("output_format = json\n")
+            f.write("fortran_only = true\n")
             f.write("\n")
             f.write("[options.get-summary]\n")
             f.write("top_level_blocks = true\n")
