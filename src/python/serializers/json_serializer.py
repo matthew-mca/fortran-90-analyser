@@ -4,6 +4,7 @@ from typing import Any, Dict
 
 from code_data_models.code_block import CodeBlock
 from code_data_models.variable import Variable
+from file_data_models.fortran_file import FortranFile
 
 from .serializers import Serializer, SerializerRegistry
 
@@ -33,27 +34,47 @@ class _JSONSerializer(Serializer):
 
     def serialize_get_raw_contents(self) -> None:
         output: Dict[str, Any] = {}
+        failed_parse_count = sum(item.failed_fortran_parse for item in self.collected_files)
 
-        output["fileCount"] = len(self.fortran_files)
+        output["fileCount"] = len(self.collected_files)
+        output["fortranFileCount"] = (
+            sum(isinstance(item, FortranFile) for item in self.collected_files) + failed_parse_count
+        )
+        output["fortranFilesFailedToParse"] = failed_parse_count
         output["files"] = []
-        for f90_file in self.fortran_files:
-            output["files"].append(
-                {"filePath": f90_file.path_from_root, "contents": [line.content for line in f90_file.contents]}
-            )
+
+        for file_obj in self.collected_files:
+            file_info = {
+                "filePath": file_obj.path_from_root,
+                "failedFortranParse": file_obj.failed_fortran_parse,
+            }
+
+            if isinstance(file_obj, FortranFile):
+                file_info["contents"] = [line.content for line in file_obj.contents]
+
+            output["files"].append(file_info)
 
         self._write_json_to_file(output)
 
     def serialize_get_summary(self, top_level_blocks: bool, top_level_vars: bool) -> None:
         output: Dict[str, Any] = {}
+        failed_parse_count = sum(item.failed_fortran_parse for item in self.collected_files)
 
-        output["fileCount"] = len(self.fortran_files)
+        output["fileCount"] = len(self.collected_files)
+        output["fortranFileCount"] = (
+            sum(isinstance(item, FortranFile) for item in self.collected_files) + failed_parse_count
+        )
+        output["fortranFilesFailedToParse"] = failed_parse_count
         output["commentCount"] = 0
         found_blocks = []
         found_variables = []
 
-        for f90_file in self.fortran_files:
-            found_blocks.extend(f90_file.components)
-            output["commentCount"] += sum(line.contains_comment for line in f90_file.contents)
+        for file_obj in self.collected_files:
+            if not isinstance(file_obj, FortranFile):
+                continue
+
+            found_blocks.extend(file_obj.components)
+            output["commentCount"] += sum(line.contains_comment for line in file_obj.contents)
 
         output["topLevelCodeBlocksOnly"] = top_level_blocks
         output["topLevelVariablesOnly"] = top_level_vars
@@ -153,18 +174,26 @@ class _JSONSerializer(Serializer):
             }
 
         output: Dict[str, Any] = {}
+        failed_parse_count = sum(item.failed_fortran_parse for item in self.collected_files)
 
-        output["fileCount"] = len(self.fortran_files)
+        output["fileCount"] = len(self.collected_files)
+        output["fortranFileCount"] = (
+            sum(isinstance(item, FortranFile) for item in self.collected_files) + failed_parse_count
+        )
+        output["fortranFilesFailedToParse"] = failed_parse_count
         output["noDuplicateVariableInformation"] = no_duplicates
         output["files"] = []
 
-        for f90_file in self.fortran_files:
-            output["files"].append(
-                {
-                    "filePath": f90_file.path_from_root,
-                    "componentCount": len(f90_file.components),
-                    "components": [build_component_json(component) for component in f90_file.components],
-                }
-            )
+        for file_obj in self.collected_files:
+            file_info = {
+                "filePath": file_obj.path_from_root,
+                "failedFortranParse": file_obj.failed_fortran_parse,
+            }
+
+            if isinstance(file_obj, FortranFile):
+                file_info["componentCount"] = len(file_obj.components)
+                file_info["components"] = [build_component_json(component) for component in file_obj.components]
+
+            output["files"].append(file_info)
 
         self._write_json_to_file(output)

@@ -13,9 +13,12 @@ different commands in the application.
 ```json
 {
     "fileCount": int,
+    "fortranFileCount": int,
+    "fortranFilesFailedToParse": int,
     "files": [
         {
             "filePath": string,
+            "failedFortranParse": boolean,
             "contents": [
                 string
             ]
@@ -28,9 +31,12 @@ different commands in the application.
 
 | Property Name | Value | Description |
 |---|---|---|
-| fileCount | int | The number of FORTRAN files found during parsing. |
+| fileCount | int | The overall number of files found during parsing. |
+| fortranFileCount | int | The number of FORTRAN files found during parsing. |
+| fortranFilesFailedToParse | int | The number of FORTRAN files where parsing failed. These files fall back to being minimal file objects. |
 | files | list | The FORTRAN files found during parsing. |
 | filePath | string | The path to the file from the root of the codebase.  If a single file was specified for parsing, this value is the absolute path of the file. |
+| failedFortranParse | boolean | Indicates if this specific file is a FORTRAN file that failed parsing. |
 | contents | list | A list of all the lines of text in the file. |
 
 ## get-summary
@@ -40,6 +46,8 @@ different commands in the application.
 ```json
 {
     "fileCount": int,
+    "fortranFileCount": int,
+    "fortranFilesFailedToParse": int,
     "commentCount": int,
     "topLevelCodeBlocksOnly": boolean,
     "topLevelVariablesOnly": boolean,
@@ -69,7 +77,9 @@ different commands in the application.
 
 | Property Name | Value | Description |
 |---|---|---|
-| fileCount | int | The number of FORTRAN files found during parsing. |
+| fileCount | int | The overall number of files found during parsing. |
+| fortranFileCount | int | The number of FORTRAN files found during parsing. |
+| fortranFilesFailedToParse | int | The number of FORTRAN files where parsing failed. These files fall back to being minimal file objects. |
 | commentCount | int | The number of commented lines of code. |
 | topLevelCodeBlocksOnly | boolean | Does not include subprogram information in the summary. |
 | topLevelVariablesOnly | boolean | Does not include variable information for variables that are found in a program unit's subprograms in the summary. Has no effect if topLevelCodeBlocksOnly is false. |
@@ -98,10 +108,13 @@ different commands in the application.
 ```json
 {
     "fileCount": int,
+    "fortranFileCount": int,
+    "fortranFilesFailedToParse": int,
     "noDuplicateVariableInformation": boolean,
     "files": [
         {
             "filePath": string,
+            "failedFortranParse": boolean,
             "componentCount": int,
             "components": [
                 type(component)
@@ -145,10 +158,13 @@ different commands in the application.
 
 | Property Name | Value | Description |
 |---|---|---|
-| fileCount | int | The number of FORTRAN files found during parsing. |
+| fileCount | int | The overall number of files found during parsing. |
+| fortranFileCount | int | The number of FORTRAN files found during parsing. |
+| fortranFilesFailedToParse | int | The number of FORTRAN files where parsing failed. These files fall back to being minimal file objects. |
 | noDuplicateVariableInformation | boolean | Stops variables found in the subprograms for a larger program unit from appearing more than once in the output. |
 | files | list | The FORTRAN files found during parsing. |
 | filePath | string | The path to the file from the root of the codebase. If a single file was specified for parsing, this value is the absolute path of the file. |
+| failedFortranParse | boolean | Indicates if this specific file is a FORTRAN file that failed parsing. |
 | componentCount | int | The number of top-level code blocks found in the file. |
 | components | list | The top-level code blocks found in the file. |
 | blockType | string | The type of the code block, e.g. program, module, function, etc. |
