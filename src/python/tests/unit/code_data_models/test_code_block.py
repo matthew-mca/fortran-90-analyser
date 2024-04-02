@@ -259,8 +259,8 @@ class TestCodeBlock:
         test_function = random_fortran_function(
             subprograms=[test_do_loop, test_if_block],
         )
-        # Add an interface to check the function doesn't fall over when
-        # one of the subprograms doesn't itself support subprograms
+        # Add a derived type to check the function doesn't fall over
+        # when one of the subprograms doesn't itself support subprograms
         test_interface = random_fortran_type()
 
         test_program = random_fortran_program(
