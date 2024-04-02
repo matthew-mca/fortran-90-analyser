@@ -92,7 +92,7 @@ class TestFortranCLI:
 
         result = env_runner.invoke(cli, ["get-summary"])
         assert result.exit_code == 0
-        assert "Codebase parsed..." in result.output
+        assert "Codebase parsed." in result.output
 
     def test_fortran_cli_config_file(self, runner, live_data_path, tmp_path):
         config_path = tmp_path / "test_config.ini"
@@ -166,9 +166,11 @@ class TestFortranCLI:
         assert result.exit_code == 0
 
         expected_messages = [
-            "Codebase parsed...",
-            "# of Fortran 90 files: 9",
-            "# of Comments: 108",
+            "Codebase parsed.",
+            "# of files: 9",
+            "# of FORTRAN files: 9",
+            "# of FORTRAN files that failed parsing: 0",
+            "# of comments: 108",
             "Code blocks found:",
             "Variables found:",
         ]
@@ -216,13 +218,14 @@ class TestFortranCLI:
         assert result.exit_code == 0
 
         expected_messages = [
-            "Number of files found: 9",
-            "File path:",
-            "Number of components in file:",
-            "Components in file:",
+            "# of files: 9",
+            "# of FORTRAN files: 9",
+            "# of FORTRAN files that failed parsing: 0",
+            "> FORTRAN file",
+            "> Number of components in file:",
+            "> Components in file:",
             "VARIABLES",
             "SUBPROGRAMS",
-            "",
         ]
         for message in expected_messages:
             assert message in result.output
