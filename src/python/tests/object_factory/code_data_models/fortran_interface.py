@@ -12,5 +12,6 @@ def random_fortran_interface(**kwargs) -> FortranInterface:
             key=lambda statement: statement.line_number,
         ),
     )
+    kwargs.setdefault("subprograms", [])
 
     return FortranInterface(**kwargs)

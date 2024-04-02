@@ -27,6 +27,7 @@ The following list details the environment variable names for all of the options
 - **code-path:** `FORTRAN_CODE_PATH`
 - **output-format:** `OUTPUT_FORMAT`
 - **output-path:** `OUTPUT_PATH`
+- **fortran-only:** `FORTRAN_ONLY`
 - **top-level-blocks:** `TOP_LEVEL_BLOCKS`
 - **top-level-vars:** `TOP_LEVEL_VARS`
 - **config:** `CLI_CONFIG_PATH`
@@ -52,6 +53,7 @@ Below is an example that shows the format of a config file for the application:
 code_path = .
 output_format = json
 output_path = ./results.json
+fortran_only = true
 
 [options.get-summary]
 top_level_blocks = true

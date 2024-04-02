@@ -1,5 +1,5 @@
 import re
-from typing import Iterable, List
+from typing import Iterable, List, Union
 
 from code_data_models.code_block import CodeBlock
 from code_data_models.code_pattern import CodePattern, CodePatternRegex
@@ -13,7 +13,7 @@ from code_data_models.fortran_program import FortranProgram
 from code_data_models.fortran_subroutine import FortranSubroutine
 from code_data_models.fortran_type import FortranType
 from parsers.code_parser_stack import CodeParserStack
-from utils.comment_finder import find_comment
+from utils.comment_finder import find_comment, remove_comment_from_line
 from utils.repr_builder import build_repr_from_attributes
 
 from .digital_file import DigitalFile
@@ -22,6 +22,7 @@ CODE_BLOCKS_THAT_SUPPORT_SUBPROGRAMS = [
     FortranFunction,
     FortranDoLoop,
     FortranIfBlock,
+    FortranInterface,
     FortranModule,
     FortranProgram,
     FortranSubroutine,
@@ -48,17 +49,19 @@ class FortranFile(DigitalFile):
         """
 
         super().__init__(path_from_root)
-
+        contents = self._join_continued_lines(contents)  # type: ignore[assignment]
         self.contents: List[CodeStatement] = []
-        for index, line in enumerate(contents):
+        for line in contents:
+            line_number = line[0]
+            line_content = line[1]
             # This stops several commands on one line being counted as a
             # single statement.
-            all_statements = self._split_statements(line)
+            all_statements = self._split_statements(line_content)
 
             for statement in all_statements:
                 # Line numbers in almost all editors start at 1, hence
                 # the increment of index here.
-                self.contents.append(CodeStatement((index + 1), statement))
+                self.contents.append(CodeStatement(line_number, statement))
 
         self.components: List[CodeBlock] = self._parse_code_blocks()
 
@@ -185,10 +188,90 @@ class FortranFile(DigitalFile):
         if comment:
             line = line.replace(comment, "")
 
-        statement_list = line.split(";")
+        if line:
+            statement_list = self._split_outside_quotes(line, ";")
+        else:
+            statement_list = [line]
+
         statement_list[-1] += comment or ""
 
         return [line.strip() for line in statement_list]
+
+    def _join_continued_lines(self, contents: Iterable[str]) -> List[List[Union[int, str]]]:  # type: ignore[type-arg]
+        """Joins lines connected by a continuation character."""
+
+        # This helper function works like str.strip(), but leaves one
+        # whitespace in places where there may be excessive whitespace.
+        def reduce_whitespace(full_string: str) -> str:
+            return " ".join(full_string.split())
+
+        enumerated_contents = list(enumerate(contents))
+        indexed_lines: List[List[int, str]] = [list(item) for item in enumerated_contents]  # type: ignore[type-arg]
+        clean_contents = []
+
+        for i in range(len(indexed_lines)):
+            index, line = indexed_lines[i]
+            line = line.strip()
+
+            if "&" not in line:
+                clean_contents.append([index + 1, line])
+                continue
+
+            line = remove_comment_from_line(line)
+
+            if line.endswith("&"):
+                # This is very hacky... but it stops accidental duping
+                # or loss of lines when a line ending with '&' comes
+                # before a line starting with '&'.
+                if indexed_lines[i + 1][1].strip().startswith("&"):
+                    indexed_lines[i + 1][1] = indexed_lines[i + 1][1].strip()[1:]
+
+                # Place AHEAD in ORIGINAL list.
+                indexed_lines[i + 1][1] = reduce_whitespace(line[:-1] + indexed_lines[i + 1][1])
+                continue
+
+            if line.startswith("&"):
+                # Place BEHIND in NEW list.
+                clean_contents[-1][1] = reduce_whitespace(clean_contents[-1][1] + line[1:])
+                continue
+
+        return clean_contents
+
+    def _split_outside_quotes(self, string_to_split: str, delimiter: str) -> List[str]:
+        """Splits a string, ignoring delimiters inside quotes."""
+
+        split_parts = []
+        # Set and unset as we enter and exit quotes
+        active_quote_char = None
+        quote_chars = ("'", '"')
+        start_of_slice = 0
+
+        for i in range(len(string_to_split)):
+            current_str = string_to_split[start_of_slice:i]
+            reverse = current_str[::-1]
+
+            if delimiter == reverse[: len(delimiter)] and active_quote_char is None:
+                # Reaching here means we found our delimiter outside
+                # quotes
+                split_parts.append(string_to_split[start_of_slice : (i - len(delimiter))])
+                start_of_slice = i
+
+            if string_to_split[i] in quote_chars and active_quote_char is None:
+                active_quote_char = string_to_split[i]
+            elif active_quote_char is not None:
+                if string_to_split[i] == active_quote_char:
+                    active_quote_char = None
+
+        # Due to the fact that in our loop we check if we need to split,
+        # THEN we check if we have left a quoted string, if the supplied
+        # string argument ends with a quote character, we have to do one
+        # final check outside the loop to see if a split is needed.
+        if string_to_split[start_of_slice:][-1] in quote_chars or start_of_slice == 0:
+            split_parts.append(string_to_split[start_of_slice:])
+        else:
+            split_parts.extend(string_to_split[start_of_slice:].split(delimiter))
+
+        return split_parts
 
     def __repr__(self) -> str:
         return build_repr_from_attributes(

@@ -2,7 +2,7 @@ import os
 from abc import ABC, abstractmethod
 from typing import Callable, Dict, List, Union
 
-from file_data_models.fortran_file import FortranFile
+from file_data_models.digital_file import DigitalFile
 
 
 class Serializer(ABC):
@@ -16,11 +16,11 @@ class Serializer(ABC):
 
     Attributes:
         output_path: The path the serializer writes to when called.
-        fortran_files: The file(s) collected by the application's file
+        collected_files: The file(s) collected by the application's file
           parser. These files are then processed during serialization.
     """
 
-    def __init__(self, output_path: str, fortran_files: List[FortranFile]):
+    def __init__(self, output_path: str, collected_files: List[DigitalFile]):
         """Initialises a Serializer object.
 
         This __init__ can only be called by fully implemented child
@@ -28,13 +28,13 @@ class Serializer(ABC):
 
         Args:
             output_path: The path the serializer writes to when called.
-            fortran_files: The file(s) collected by the application's
+            collected_files: The file(s) collected by the application's
               file parser. These files are then processed during
               serialization.
         """
 
         self.output_path = os.path.abspath(output_path)
-        self.fortran_files = fortran_files
+        self.collected_files = collected_files
 
     @abstractmethod
     def serialize_get_raw_contents(self) -> None:
@@ -110,7 +110,7 @@ class SerializerRegistry:
 
     @classmethod
     def get_serializer(
-        cls, format: str, output_path: str, fortran_files: Union[FortranFile, List[FortranFile]]
+        cls, format: str, output_path: str, collected_files: Union[DigitalFile, List[DigitalFile]]
     ) -> Serializer:
         """Finds and returns an instance of a serializer.
 
@@ -122,7 +122,7 @@ class SerializerRegistry:
         Args:
             format: The key of the registered serializer class.
             output_path: The path the serializer writes to when called.
-            fortran_files: The file(s) collected by the application's
+            collected_files: The file(s) collected by the application's
               file parser. These files are then processed during
               serialization.
 
@@ -136,7 +136,7 @@ class SerializerRegistry:
         """
 
         serializer = cls._serializers[format]
-        return serializer(output_path, fortran_files)  # type: ignore[operator]
+        return serializer(output_path, collected_files)  # type: ignore[operator]
 
     @classmethod
     def get_all_serializable_formats(cls) -> List[str]:

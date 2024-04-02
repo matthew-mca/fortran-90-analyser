@@ -20,6 +20,7 @@ class TestJSONSerializer:
         result = runner.invoke(
             cli,
             [
+                "--fortran-only",
                 "--code-path",
                 live_data_path,
                 "--output-format",
@@ -47,6 +48,7 @@ class TestJSONSerializer:
         result = runner.invoke(
             cli,
             [
+                "--fortran-only",
                 "--code-path",
                 live_data_path,
                 "--output-format",
@@ -84,6 +86,7 @@ class TestJSONSerializer:
         result = runner.invoke(
             cli,
             [
+                "--fortran-only",
                 "--code-path",
                 live_data_path,
                 "--output-format",

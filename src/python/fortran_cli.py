@@ -21,6 +21,7 @@ import click
 
 from code_data_models.code_block import CodeBlock
 from code_data_models.variable import Variable
+from file_data_models.fortran_file import FortranFile
 from parsers.file_parser import FileParser
 from serializers import SerializerRegistry
 
@@ -92,24 +93,41 @@ def read_from_config(ctx: click.Context, param: click.Option, filename: str) -> 
     show_default=True,
     type=click.Path(dir_okay=False),
 )
+@click.option(
+    "--fortran-only",
+    envvar="FORTRAN_ONLY",
+    help="Excludes non-FORTRAN files from parsing.",
+    is_flag=True,
+)
 @click.pass_context
-def cli(ctx: click.Context, code_path: str, output_format: str, output_path: str) -> None:
+def cli(ctx: click.Context, code_path: str, output_format: str, output_path: str, fortran_only: bool) -> None:
     ctx.ensure_object(dict)
     if output_format or output_path:
         check_output_path_file_extension(output_format, output_path)
 
     parser = FileParser()
     if os.path.isdir(code_path):
-        codebase = parser.build_directory_tree(code_path)
-        fortran_files = codebase.get_all_fortran_files()
+        codebase = parser.build_directory_tree(code_path, fortran_only)
+        collected_files = codebase.get_all_files()
     else:
-        fortran_files = [parser.parse_file(code_path)]
+        collected_files = [parser.parse_file(code_path)]
 
     if output_format:
-        serializer = SerializerRegistry.get_serializer(output_format.lower(), output_path, fortran_files)
+        serializer = SerializerRegistry.get_serializer(output_format.lower(), output_path, collected_files)
         ctx.obj["serializer"] = serializer
     else:
-        ctx.obj["files"] = fortran_files
+        ctx.obj["files"] = collected_files
+
+    file_count = len(collected_files)
+    failed_parse_count = sum(item.failed_fortran_parse for item in collected_files)
+    fortran_file_count = sum(isinstance(item, FortranFile) for item in collected_files) + failed_parse_count
+
+    click.echo()
+    click.echo("Codebase parsed. \n")
+    click.echo(f"# of files: {file_count}")
+    click.echo(f"# of FORTRAN files: {fortran_file_count}")
+    click.echo(f"# of FORTRAN files that failed parsing: {failed_parse_count}")
+    click.echo()
 
 
 @cli.command(short_help="Obtains the raw contents of the found Fortran file(s).")
@@ -126,10 +144,12 @@ def get_raw_contents(ctx: click.Context) -> None:
 
         return
 
-    for f90_file in ctx.obj["files"]:
-        click.echo(f90_file.file_name)
-        for line in f90_file.contents:
-            click.echo(f"\t{line.content}")
+    for file_obj in ctx.obj["files"]:
+        click.echo(f"> {file_obj.path_from_root}")
+        if isinstance(file_obj, FortranFile):
+            for line in file_obj.contents:
+                click.echo(f"\t{line.content}")
+        click.echo()
 
 
 @cli.command(short_help="Counts the amount of code blocks, variables and comments in the found Fortran file(s).")
@@ -162,14 +182,14 @@ def get_summary(ctx: click.Context, top_level_blocks: bool, top_level_vars: bool
 
         return
 
-    fortran_file_count = len(ctx.obj["files"])
     comment_count = 0
     found_blocks = []
     found_variables = []
 
-    for f90_file in ctx.obj["files"]:
-        found_blocks.extend(f90_file.components)
-        comment_count += sum(line.contains_comment for line in f90_file.contents)
+    for file_obj in ctx.obj["files"]:
+        if isinstance(file_obj, FortranFile):
+            found_blocks.extend(file_obj.components)
+            comment_count += sum(line.contains_comment for line in file_obj.contents)
 
     if not top_level_blocks:
         subprograms = []
@@ -180,10 +200,12 @@ def get_summary(ctx: click.Context, top_level_blocks: bool, top_level_vars: bool
 
     if not top_level_blocks or top_level_vars:
         for block in found_blocks:
-            found_variables.extend(block.get_variables_not_in_subprograms())
+            if hasattr(block, "variables") and hasattr(block, "subprograms"):
+                found_variables.extend(block.get_variables_not_in_subprograms())
     else:
         for block in found_blocks:
-            found_variables.extend(block.variables)
+            if hasattr(block, "variables"):
+                found_variables.extend(block.variables)
 
     block_counts: Dict[str, int] = defaultdict(int)
     for block in found_blocks:
@@ -197,10 +219,7 @@ def get_summary(ctx: click.Context, top_level_blocks: bool, top_level_vars: bool
         # 'INTEGER(I8)'.
         variable_counts[var_type] = sum(var_type in var.data_type for var in found_variables)
 
-    click.echo("Codebase parsed...\n")
-
-    click.echo(f"# of Fortran 90 files: {fortran_file_count}")
-    click.echo(f"# of Comments: {comment_count}")
+    click.echo(f"# of comments: {comment_count}")
 
     CODE_BLOCK_KEYS = [
         "FortranDoLoop",
@@ -287,18 +306,25 @@ def list_all_variables(ctx: click.Context, no_duplicates: bool) -> None:
             for subprogram in component.subprograms:
                 print_component_info(subprogram, indent_level + 1)
 
-    fortran_files = ctx.obj["files"]
-    click.echo(f"Number of files found: {len(fortran_files)}")
-    click.echo()
+    collected_files = ctx.obj["files"]
 
-    for f90_file in fortran_files:
-        click.echo(f"File path: '{f90_file.path_from_root}'")
-        click.echo(f"Number of components in file: {len(f90_file.components)}")
-        click.echo("Components in file:")
+    for file_obj in collected_files:
+        is_fortran_file = isinstance(file_obj, FortranFile) or file_obj.failed_fortran_parse
+        initial_message = "> FORTRAN file" if is_fortran_file else "> File"
+        initial_message += f" '{file_obj.path_from_root}'"
+        if file_obj.failed_fortran_parse:
+            initial_message += "\n\tFile parse failed during collection."
+        if not isinstance(file_obj, FortranFile):
+            initial_message += "\n"
 
-        for component in f90_file.components:
-            print_component_info(component)
-            click.echo()
+        click.echo(initial_message)
+
+        if isinstance(file_obj, FortranFile):
+            click.echo(f"> Number of components in file: {len(file_obj.components)}")
+            click.echo("> Components in file:")
+            for component in file_obj.components:
+                print_component_info(component)
+                click.echo()
 
 
 if __name__ == "__main__":

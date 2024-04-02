@@ -4,3 +4,5 @@ __pycache__/
 .vscode/
 .coverage
 builds/*
+file_parser.log
+file_parser_errors.log

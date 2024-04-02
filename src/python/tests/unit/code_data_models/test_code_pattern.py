@@ -99,6 +99,7 @@ class TestCodePatternRegex:
             ("  my_type   ", False),
             ("TYPE name with spaces", False),
             ("TYPE test_type !! comment", True),
+            ("    type, abstract        ::     BaseHamiltonian", True),
         ],
     )
     def test_type_start(self, string, expect_match):
@@ -172,6 +173,7 @@ class TestCodePatternRegex:
             ("RECURSIVE FUNCTION TEST_RECURSION(test_arg) RESULT(result_var)", True),
             ("INTEGER RECURSIVE FUNCTION test_function(arg_1)", True),
             ("COMPLEX RECURSIVE FUNCTION test_function(test_arg) RESULT(result_var) ! comment", True),
+            ("real(wp) function evaluate_integrals_singular(this,label,coeff,dummy_orb)", True),
         ],
     )
     def test_function_start(self, string, expect_match):
@@ -182,12 +184,12 @@ class TestCodePatternRegex:
         [
             ("SUBROUTINE TEST_SUBROUTINE (test_arg1, TEST_ARG2,TEST_ARG3)", True),
             ("SUBROUTINE     test_subroutine()", True),
-            ("SUBROUTINE TEST_SUBROUTINE", False),
-            ("SUBROUTINE TEST_SUBROUTINE", False),
+            ("SUBROUTINE TEST_SUBROUTINE", True),
             ("INTEGER SUBROUTINE TEST_SUBROUTINE(ARG_1, ARG_2)", False),
             ("SUBROUTINE ()", False),
             ("SUBROUTINE TEST_SUBROUTINE() ! comment", True),
             ("RECURSIVE SUBROUTINE test_subroutine(arg_1)", True),
+            ("    subroutine newpg", True),
         ],
     )
     def test_subroutine_start(self, string, expect_match):
@@ -197,9 +199,11 @@ class TestCodePatternRegex:
         "string,expect_match",
         [
             ("  INTERFACE   ", True),
-            ("INTERFACE test_interface", False),
+            ("INTERFACE test_interface", True),
             ("NEW INTERFACE", False),
             ("INTERFACE ! comment", True),
+            ("interface  maths_matrix_multiply_blas95", True),
+            ("    abstract interface", True),
         ],
     )
     def test_interface_start(self, string, expect_match):
@@ -209,10 +213,11 @@ class TestCodePatternRegex:
         "string,expect_match",
         [
             ("END INTERFACE", True),
-            ("END INTERFACE test_inferface", False),
+            ("END INTERFACE test_interface", True),
             ("SEND INTERFACE", False),
             ("end       INTERFACE", True),
             ("END INTERFACE ! comment  ", True),
+            ("end interface gesvd", True),
         ],
     )
     def test_interface_end(self, string, expect_match):
@@ -251,6 +256,7 @@ class TestCodePatternRegex:
             ("IF ( X .LT. 0.0 ) THEN ", True),
             ("IF condition THEN", False),
             ("IF (condition)", False),
+            (" 100  IF(NP.LT.NR)THEN", True),
         ],
     )
     def test_if_block(self, string, expect_match):
@@ -279,6 +285,9 @@ class TestCodePatternRegex:
             ("DO i = start, end", True),
             ("while (condition) do", True),
             ("DO 210 I = 1, 10", True),
+            ("DO J=1, I", True),
+            (" 310  DO I=IA, IMAX", True),
+            ("DO", True),
         ],
     )
     def test_do_loop(self, string, expect_match):
@@ -294,6 +303,7 @@ class TestCodePatternRegex:
             ("end       DO", True),
             ("END DO ! comment  ", True),
             ("ENDDO", True),
+            (" 30   END DO", True),
         ],
     )
     def test_do_loop_end(self, string, expect_match):
