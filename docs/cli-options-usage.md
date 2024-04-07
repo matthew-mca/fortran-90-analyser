@@ -33,6 +33,11 @@ The following list details the environment variable names for all of the options
 - **config:** `CLI_CONFIG_PATH`
 - **no-duplicates:** `NO_DUPLICATE_VARS`
 
+There is also an environment variable called `ADDITIONAL_FORTRAN_EXTENSIONS_BETA`, that will parse FORTRAN files with
+the `.f`, `.F`, and `.F90` extensions when it is set to the string value `"true"`. Reading of `.F`/`.f` files in
+particular is not as stable as reading `.f90` files, so be mindful that parsing these extra file formats may result in
+additional parsing failures!
+
 ## Config Files
 
 It is possible to provide options to the CLI via a `.ini` configuration file. The path to the file
