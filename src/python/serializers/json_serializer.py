@@ -88,10 +88,12 @@ class _JSONSerializer(Serializer):
 
         if not top_level_blocks or top_level_vars:
             for block in found_blocks:
-                found_variables.extend(block.get_variables_not_in_subprograms())
+                if hasattr(block, "variables") and hasattr(block, "subprograms"):
+                    found_variables.extend(block.get_variables_not_in_subprograms())
         else:
             for block in found_blocks:
-                found_variables.extend(block.variables)
+                if hasattr(block, "variables"):
+                    found_variables.extend(block.variables)
 
         block_counts: Dict[str, int] = defaultdict(int)
         for block in found_blocks:
