@@ -42,7 +42,7 @@ class CodePatternRegex:
     DO_LOOP = r"^\s*(\d+\s+)?(DO\s*WHILE\s*\(.*\)|WHILE\s*\(.*\)\s*DO|DO((\s+\d*)?\s+\w+\s*=.+)?)\s*(!.*)?$"
     DO_LOOP_END = r"^\s*(\d+\s+)?END\s*DO\s*(!.*)?$"
     FUNCTION = (
-        rf"^\s*(.*\s*)((RECURSIVE\s+)?(({ALL_RETURN_TYPES})\s+)?|(({ALL_RETURN_TYPES})\s+)?(RECURSIVE\s+)?)?"
+        rf"^\s*([\(\)\w]*\s*)((RECURSIVE\s+)?(({ALL_RETURN_TYPES})\s+)?|(({ALL_RETURN_TYPES})\s+)?(RECURSIVE\s+)?)?"
         rf"FUNCTION\s+\w+\s*\([ \w\,]*\)(\s+RESULT\s*\([ \w\,]*\))?\s*(!.*)?$"
     )
     FUNCTION_END = r"^\s*END\s*FUNCTION(\s+\w+)?\s*(!.*)?$"
