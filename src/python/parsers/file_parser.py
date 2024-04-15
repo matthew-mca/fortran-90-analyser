@@ -117,6 +117,7 @@ class FileParser:
             raise ValueError("Specified path is a file, not a directory.")
 
         root_dir_name = dir_path.parts[-1]
+        logger.info("Beginning parsing for codebase '%s'...", root_dir_name)
         directory_tree: Directory = Directory(root_dir_name)
         current = directory_tree  # We will use current to build the inner dicts within the tree
 
@@ -143,6 +144,7 @@ class FileParser:
                     new_file = self.parse_file(os.path.join(root, file_name), str(dir_path))
                     current.add_file(new_file)
 
+        logger.info("All files collected for codebase '%s'.", root_dir_name)
         return directory_tree
 
     def is_f90_file(self, file_path: str) -> bool:

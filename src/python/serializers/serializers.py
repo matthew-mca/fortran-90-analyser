@@ -1,6 +1,6 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, List, Union
+from typing import Callable, Dict, List
 
 from file_data_models.digital_file import DigitalFile
 
@@ -109,9 +109,7 @@ class SerializerRegistry:
         return wrapper
 
     @classmethod
-    def get_serializer(
-        cls, format: str, output_path: str, collected_files: Union[DigitalFile, List[DigitalFile]]
-    ) -> Serializer:
+    def get_serializer(cls, format: str, output_path: str, collected_files: List[DigitalFile]) -> Serializer:
         """Finds and returns an instance of a serializer.
 
         Checks the Serializer Registry for a serializer class registered

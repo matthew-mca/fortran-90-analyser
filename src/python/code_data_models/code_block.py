@@ -185,7 +185,8 @@ class CodeBlock(ABC):
             # data type, but these aren't required
             data_type, attributes = self._parse_variable_type_and_attributes(declaration_parts[0])
 
-            variable_list = self._split_outside_quotes(declaration_parts[1], ",")
+            variable_list = re.sub(r"\(.*,.*\)", "()", declaration_parts[1], re.IGNORECASE)
+            variable_list = self._split_outside_quotes(variable_list, ",")  # type: ignore[assignment]
             for variable in variable_list:
                 is_array = any("DIMENSION" in attribute for attribute in attributes)
                 # Split on the "=" sign in case a value is assigned
@@ -197,7 +198,7 @@ class CodeBlock(ABC):
                 # ended up storing the name with the length part still
                 # on the end of it... so now we search for it and
                 # remove.
-                if re.search(r"\(\d+\)", variable_name) is not None:
+                if re.search(r"\([\d:,]*\)", variable_name) is not None:
                     is_array = True
                     bracket_index = variable_name.index("(")
                     variable_name = variable_name[:bracket_index]

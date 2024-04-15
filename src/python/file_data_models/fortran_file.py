@@ -213,7 +213,7 @@ class FortranFile(DigitalFile):
             index, line = indexed_lines[i]
             line = line.strip()
 
-            if "&" not in line:
+            if "&" not in remove_comment_from_line(line):
                 clean_contents.append([index + 1, line])
                 continue
 

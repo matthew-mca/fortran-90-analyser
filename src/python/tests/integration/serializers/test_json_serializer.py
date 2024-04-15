@@ -78,7 +78,7 @@ class TestJSONSerializer:
 
         variable_dict = data["variableDataTypeSummary"]
         assert isinstance(variable_dict, dict)
-        assert len(variable_dict) == 7
+        assert len(variable_dict) == 9
         assert all(isinstance(value, int) for value in variable_dict.values())
 
     def test_list_all_variables(self, runner, live_data_path, tmp_path):
