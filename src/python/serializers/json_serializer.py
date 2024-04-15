@@ -120,12 +120,14 @@ class _JSONSerializer(Serializer):
 
         output["variableDataTypeSummary"] = {
             "characterCount": variable_counts["CHARACTER"],
+            "classCount": variable_counts["CLASS"],
             "complexCount": variable_counts["COMPLEX"],
             "doubleComplexCount": variable_counts["DOUBLE COMPLEX"],
             "doublePrecisionCount": variable_counts["DOUBLE PRECISION"],
             "integerCount": variable_counts["INTEGER"],
             "logicalCount": variable_counts["LOGICAL"],
             "realCount": variable_counts["REAL"],
+            "typeCount": variable_counts["TYPE"],
         }
 
         self._write_json_to_file(output)

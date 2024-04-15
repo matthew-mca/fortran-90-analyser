@@ -243,6 +243,9 @@ class TestCodePatternRegex:
             ("integer(i8), dimension(n) :: f", True),
             ("integer, dimension(5) :: array", True),
             ("real :: array(5)", True),
+            ("real(wp),allocatable                    ::      test_vecs(:,:)", True),
+            ("    type(routine)     :: routines(10)", True),
+            ("     integer, private  :: M , N", True),
         ],
     )
     def test_variable_declaration(self, string, expect_match):

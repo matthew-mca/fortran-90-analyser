@@ -2,7 +2,9 @@ from code_data_models.variable import Variable
 
 # Replacing the whitespaces in the Fortran data types with [ \\t]+
 # gives us the option of one or MORE spaces in our regex between words
-ALL_RETURN_TYPES = "|".join([data_type.replace(" ", "[ \\t]+") for data_type in Variable.ALL_DATA_TYPES])
+ALL_RETURN_TYPES = "|".join(
+    [data_type.replace(" ", "[ \\t]+") for data_type in Variable.ALL_DATA_TYPES if data_type not in ("TYPE", "CLASS")]
+)
 
 
 class CodePattern:
@@ -57,6 +59,6 @@ class CodePatternRegex:
     TYPE = r"^\s*TYPE(\s*,.*)?(\s*::\s*)?\s+\w+\s*(!.*)?$"
     TYPE_END = r"^\s*END\s*TYPE(\s+\w+)?\s*(!.*)?$"
     VARIABLE_DECLARATION = (
-        rf"^\s*({ALL_RETURN_TYPES}|TYPE\(.*\)).*::\s*\w{{1,31}}(\(\d+\))?(\*\d+)?(\s*=.*)?"
-        rf"(,\s*\w{{1,31}}(\(\d+\))?(\*\d+)?(\s*=.*)?)*\s*(!.*)?$"
+        rf"^\s*({ALL_RETURN_TYPES}|TYPE\(.*\)|CLASS\(.*\)).*::\s*\w{{1,31}}(\([\d:,]+\))?(\*\d+)?(\s*=.*)?"
+        rf"(\s*,\s*\w{{1,31}}(\([\d:,]+\))?(\*\d+)?(\s*=.*)?)*\s*(!.*)?$"
     )

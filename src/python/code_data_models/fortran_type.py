@@ -1,3 +1,4 @@
+import re
 from typing import List
 
 from .code_block import CodeBlock
@@ -12,7 +13,7 @@ class FortranType(CodeBlock):
           in.
         contents: The lines of code that make up the type.
         block_name: The name given to the type.
-        type_attributes: A list of all the variables declared as
+        variables: A list of all the variables declared as
           attributes in the type.
     """
 
@@ -21,4 +22,19 @@ class FortranType(CodeBlock):
 
         super().__init__(parent_file_path, contents)
         self.block_name = self._find_block_name("TYPE")
-        self.type_attributes = self._find_variable_declarations()
+        self.variables = self._find_variable_declarations()
+
+    def _find_block_name(self, block_type: str) -> str:
+        """Parses the code block's name from its declaration.
+
+        This function adds to the base functionality of the
+        '_find_block_name' function in the CodeBlock class, as there are
+        multiple elements that need to be found and removed from a
+        type declaration in order to retrieve its name.
+        """
+
+        start_line = super()._find_block_name(block_type)
+
+        start_line = re.sub(".*::", "", start_line)
+
+        return start_line.strip()
