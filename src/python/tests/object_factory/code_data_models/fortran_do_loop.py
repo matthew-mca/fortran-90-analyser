@@ -1,9 +1,9 @@
-from code_data_models.fortran_interface import FortranInterface
+from code_data_models.fortran_do_loop import FortranDoLoop
 from tests.object_factory.code_data_models.code_statement import random_code_statement
 from tests.object_factory.py_faker import PY_FAKER
 
 
-def random_fortran_interface(**kwargs) -> FortranInterface:
+def random_fortran_do_loop(**kwargs) -> FortranDoLoop:
     kwargs.setdefault("parent_file_path", PY_FAKER.pystr())
     kwargs.setdefault(
         "contents",
@@ -14,4 +14,4 @@ def random_fortran_interface(**kwargs) -> FortranInterface:
     )
     kwargs.setdefault("subprograms", [])
 
-    return FortranInterface(**kwargs)
+    return FortranDoLoop(**kwargs)

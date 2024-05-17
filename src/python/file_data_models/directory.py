@@ -108,6 +108,25 @@ class Directory:
 
         return fortran_files
 
+    def get_all_files(self) -> List[DigitalFile]:
+        """Returns a list of all the files in the directory.
+
+        Returns a list of all files in the directory, starting from the
+        top level of the directory. This function searches not only the
+        current directory, but also recursively searches any
+        subdirectories.
+
+        Returns:
+            A list of files found in the current directory and any
+            subdirectories.
+        """
+
+        all_files = [file_obj for file_obj in self.files.values()]
+        for subdir in self.subdirectories.values():
+            all_files += subdir.get_all_files()
+
+        return all_files
+
     def _name_is_taken(self, name: str) -> bool:
         """Checks for the existence of a given name in the directory."""
 

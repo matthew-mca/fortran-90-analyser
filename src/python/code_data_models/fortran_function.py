@@ -17,14 +17,17 @@ class FortranFunction(CodeBlock):
         variables: A list of all the variables in the function.
         is_recursive: Whether the function is declared as recursive or
           not.
+        subprograms: A list of CodeBlock objects contained by the code
+          block being instantiated.
     """
 
-    def __init__(self, parent_file_path: str, contents: List[CodeStatement]) -> None:
+    def __init__(self, parent_file_path: str, contents: List[CodeStatement], subprograms: List[CodeBlock]) -> None:
         """Initialises a function object."""
 
         super().__init__(parent_file_path, contents)
         self.block_name = self._find_block_name("FUNCTION")
         self.variables = self._find_variable_declarations()
+        self.subprograms = subprograms
 
         start_line = self.contents[0].content
         self.is_recursive = re.search(r"\bRECURSIVE\b", start_line, re.IGNORECASE) is not None

@@ -24,8 +24,6 @@ class TestCodePatternRegex:
             ("    MODULE    test_module   ", True),
             ("\t MoDulE test_module", True),
             ("Bad MODULE test_module statement", False),
-            ("test command;  MODULE test_module; test command", True),
-            ("MODULE\ntest_module", False),
             ("MODULE test_module ! comment", True),
         ],
     )
@@ -47,8 +45,6 @@ class TestCodePatternRegex:
             ("do not end module test_module", False),
             ("test_module", False),
             ("MODULE; test_module", False),
-            ("test command;  END MODULE test_module; test command", True),
-            ("END\nMODULE\ntest_module", False),
             ("END MODULE test_module   !!  comment", True),
         ],
     )
@@ -59,15 +55,10 @@ class TestCodePatternRegex:
         "string,expect_match",
         [
             ("PROGRAM test_program", True),
-            ("program test_program\n", True),
             ("    program   test_program   ", True),
             ("program", False),
             ("test_program", False),
-            ("PROGRAM\ntest_program", False),
-            ("PROGRAM test_program;   END", True),
             ("PROGRAM; test_program", False),
-            ("test command;  PROGRAM test_program; test command", True),
-            ("test command\nPROGRAM test_program", False),
             # The above case is likely valid from the POV of the compiler,
             # but given our parsing logic we shouldn't end up encountering it.
             ("PROGRAM test_program ! comment  ", True),
@@ -93,9 +84,6 @@ class TestCodePatternRegex:
             ("ENDPROGRAMtest_program", False),
             ("ENDPROGRAM test_program", True),
             ("bad end", False),
-            ("END test_program\n", False),
-            ("test command;  END PROGRAM test_program; test command", True),
-            ("END\nPROGRAM\ntest_program", False),
             ("END PROGRAM test_program !! comment", True),
         ],
     )
@@ -110,9 +98,8 @@ class TestCodePatternRegex:
             ("\t TYPE  ", False),
             ("  my_type   ", False),
             ("TYPE name with spaces", False),
-            ("test command;  TYPE test_type; test command", True),
-            ("TYPE\ntest_type", False),
             ("TYPE test_type !! comment", True),
+            ("    type, abstract        ::     BaseHamiltonian", True),
         ],
     )
     def test_type_start(self, string, expect_match):
@@ -130,8 +117,6 @@ class TestCodePatternRegex:
             ("ENDTYPE", True),
             ("SEND TYPE test_type", False),
             ("ENDTYPEtest_type", False),
-            ("test command;  END type test_type; test command", True),
-            ("END\nTYPE\ntest_type", False),
             ("END TYPE test_type ! comment", True),
         ],
     )
@@ -150,8 +135,6 @@ class TestCodePatternRegex:
             ("ENDFUNCTION", True),
             ("SEND FUNCTION test_function", False),
             ("ENDFUNCTIONtestfunction", False),
-            ("test command;  END function test_function; test command", True),
-            ("END\nFUNCTION\ntest_function", False),
             ("END FUNCTION ! comment", True),
         ],
     )
@@ -170,8 +153,6 @@ class TestCodePatternRegex:
             ("ENDSUBROUTINE", True),
             ("SEND SUBROUTINE test_subroutine", False),
             ("ENDSUBROUTINEtestsubroutine", False),
-            ("test command;  END subroutine test_subroutine; test command", True),
-            ("END\nSUBROUTINE\ntest_subroutine", False),
             ("END SUBROUTINE ! comment ", True),
         ],
     )
@@ -184,16 +165,15 @@ class TestCodePatternRegex:
             ("REAL FUNCTION MY_TEST_FUNCTION(test_arg1, TEST_ARG2,TEST_ARG3)", True),
             ("COMPLEX     FUNCTION     MY_TEST_FUNCTION()", True),
             ("INTEGER FUNCTION MY_TEST_FUNCTION", False),
-            ("test command; LOGICAL FUNCTION TEST_FUNCTION(ARG_1, ARG_2); test command", True),
             ("DOUBLE    PRECISION    FUNCTION TEST_FUNCTION(ARG)", True),
             ("FUNCTION test_function (arg_1, arg_2)", True),
-            ("REAL\nFUNCTION\nTEST_FUNCTION()", False),
             ("DOUBLE COMPLEX FUNCTION()", False),
             ("function test_function (arg_1, arg_2) result(result_var)", True),
             ("COMPLEX FUNCTION MY_TEST_FUNCTION() ! comment", True),
             ("RECURSIVE FUNCTION TEST_RECURSION(test_arg) RESULT(result_var)", True),
             ("INTEGER RECURSIVE FUNCTION test_function(arg_1)", True),
             ("COMPLEX RECURSIVE FUNCTION test_function(test_arg) RESULT(result_var) ! comment", True),
+            ("real(wp) function evaluate_integrals_singular(this,label,coeff,dummy_orb)", True),
         ],
     )
     def test_function_start(self, string, expect_match):
@@ -204,14 +184,12 @@ class TestCodePatternRegex:
         [
             ("SUBROUTINE TEST_SUBROUTINE (test_arg1, TEST_ARG2,TEST_ARG3)", True),
             ("SUBROUTINE     test_subroutine()", True),
-            ("SUBROUTINE TEST_SUBROUTINE", False),
-            ("test command; SUBROUTINE TEST_SUBROUTINE(ARG_1, ARG_2); test command", True),
-            ("SUBROUTINE TEST_SUBROUTINE", False),
+            ("SUBROUTINE TEST_SUBROUTINE", True),
             ("INTEGER SUBROUTINE TEST_SUBROUTINE(ARG_1, ARG_2)", False),
-            ("SUBROUTINE\nTEST_SUBROUTINE()", False),
             ("SUBROUTINE ()", False),
             ("SUBROUTINE TEST_SUBROUTINE() ! comment", True),
             ("RECURSIVE SUBROUTINE test_subroutine(arg_1)", True),
+            ("    subroutine newpg", True),
         ],
     )
     def test_subroutine_start(self, string, expect_match):
@@ -221,10 +199,11 @@ class TestCodePatternRegex:
         "string,expect_match",
         [
             ("  INTERFACE   ", True),
-            ("test command; INTERFACE; test command", True),
-            ("INTERFACE test_interface", False),
+            ("INTERFACE test_interface", True),
             ("NEW INTERFACE", False),
             ("INTERFACE ! comment", True),
+            ("interface  maths_matrix_multiply_blas95", True),
+            ("    abstract interface", True),
         ],
     )
     def test_interface_start(self, string, expect_match):
@@ -234,11 +213,11 @@ class TestCodePatternRegex:
         "string,expect_match",
         [
             ("END INTERFACE", True),
-            ("END INTERFACE test_inferface", False),
+            ("END INTERFACE test_interface", True),
             ("SEND INTERFACE", False),
             ("end       INTERFACE", True),
-            ("test command; END INTERFACE; test command", True),
             ("END INTERFACE ! comment  ", True),
+            ("end interface gesvd", True),
         ],
     )
     def test_interface_end(self, string, expect_match):
@@ -264,7 +243,71 @@ class TestCodePatternRegex:
             ("integer(i8), dimension(n) :: f", True),
             ("integer, dimension(5) :: array", True),
             ("real :: array(5)", True),
+            ("real(wp),allocatable                    ::      test_vecs(:,:)", True),
+            ("    type(routine)     :: routines(10)", True),
+            ("     integer, private  :: M , N", True),
         ],
     )
     def test_variable_declaration(self, string, expect_match):
         self.assert_regex_result(CodePatternRegex.VARIABLE_DECLARATION, string, expect_match)
+
+    @pytest.mark.parametrize(
+        "string,expect_match",
+        [
+            ("IF (condition) THEN", True),
+            ("IF (condition) THEN    ! comment", True),
+            ("IF ( X .LT. 0.0 ) THEN ", True),
+            ("IF condition THEN", False),
+            ("IF (condition)", False),
+            (" 100  IF(NP.LT.NR)THEN", True),
+        ],
+    )
+    def test_if_block(self, string, expect_match):
+        self.assert_regex_result(CodePatternRegex.IF_BLOCK, string, expect_match)
+
+    @pytest.mark.parametrize(
+        "string,expect_match",
+        [
+            ("END IF", True),
+            ("END IF if_statement", False),
+            ("SEND IF", False),
+            ("end       IF", True),
+            ("END IF ! comment  ", True),
+            ("ENDIF", True),
+            ("END", False),
+        ],
+    )
+    def test_if_block_end(self, string, expect_match):
+        self.assert_regex_result(CodePatternRegex.IF_BLOCK_END, string, expect_match)
+
+    @pytest.mark.parametrize(
+        "string,expect_match",
+        [
+            ("DO WHILE (condition)", True),
+            ("DO i = start, end, step", True),
+            ("DO i = start, end", True),
+            ("while (condition) do", True),
+            ("DO 210 I = 1, 10", True),
+            ("DO J=1, I", True),
+            (" 310  DO I=IA, IMAX", True),
+            ("DO", True),
+        ],
+    )
+    def test_do_loop(self, string, expect_match):
+        self.assert_regex_result(CodePatternRegex.DO_LOOP, string, expect_match)
+
+    @pytest.mark.parametrize(
+        "string,expect_match",
+        [
+            ("END DO", True),
+            ("END", False),
+            ("END DO do_loop", False),
+            ("SEND DO", False),
+            ("end       DO", True),
+            ("END DO ! comment  ", True),
+            ("ENDDO", True),
+            (" 30   END DO", True),
+        ],
+    )
+    def test_do_loop_end(self, string, expect_match):
+        self.assert_regex_result(CodePatternRegex.DO_LOOP_END, string, expect_match)

@@ -26,12 +26,14 @@ class Variable:
 
     ALL_DATA_TYPES = [
         "CHARACTER",
+        "CLASS",
         "COMPLEX",
         "DOUBLE COMPLEX",
         "DOUBLE PRECISION",
         "INTEGER",
         "LOGICAL",
         "REAL",
+        "TYPE",
     ]
 
     def __init__(

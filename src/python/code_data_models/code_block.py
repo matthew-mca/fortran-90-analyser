@@ -78,6 +78,64 @@ class CodeBlock(ABC):
 
         return self.start_line_number < other.start_line_number and self.end_line_number > other.end_line_number
 
+    def get_variables_not_in_subprograms(self) -> List[Variable]:
+        """Returns all the variables not present in any subprograms.
+
+        Collects all of the variables stored in each subprogram inside
+        the code block. Once all these variables have been collected,
+        the function creates and returns a list containing ONLY the
+        variables not found in this list of subprogram variables. This
+        means that only the variables at the block's widest scope are
+        returned.
+
+        Returns:
+            The list of variables stored for the code block, minus any
+            variables that can also be found in the block's subprograms.
+
+        Raises:
+            TypeError: The object calling this function does not support
+              subprograms and/or variables. Certain child classes of
+              CodeBlock do not have these attributes.
+        """
+
+        if not hasattr(self, "subprograms") or not hasattr(self, "variables"):
+            raise TypeError("Current code block type does not support subprograms and/or variables.")
+
+        all_subprogram_variables: List[Variable] = []
+        for subprogram in self.subprograms:
+            all_subprogram_variables.extend(getattr(subprogram, "variables", []))
+
+        return [var for var in self.variables if var not in all_subprogram_variables]
+
+    def get_all_subprograms(self) -> List[Self]:
+        """Gets a list of all subprograms inside of the code block.
+
+        This function gets all of the subprograms that can be found for
+        the code block, regardless of how deeply nested it is. Any and
+        all subprograms are included in the final list without any
+        nesting.
+
+        Returns:
+            A list of all the subprograms found within the code block.
+
+        Raises:
+            TypeError: The object calling this function does not support
+              subprograms. Certain child classes of CodeBlock do not
+              have this attribute.
+        """
+
+        if not hasattr(self, "subprograms"):
+            raise TypeError("Current code block type does not support subprograms.")
+
+        lower_level_programs = []
+        for program in getattr(self, "subprograms", []):
+            try:
+                lower_level_programs += program.get_all_subprograms()
+            except TypeError:
+                continue
+
+        return self.subprograms + lower_level_programs
+
     def _find_block_name(self, block_type: str) -> str:
         """Parses the code block's name from its declaration.
 
@@ -122,26 +180,25 @@ class CodeBlock(ABC):
 
             line_content = remove_comment_from_line(line_content)
 
-            declaration_parts = line_content.split("::")
+            declaration_parts = self._split_outside_quotes(line_content, "::")
             # Variables can have various attributes that follow the
             # data type, but these aren't required
             data_type, attributes = self._parse_variable_type_and_attributes(declaration_parts[0])
 
-            variable_list = declaration_parts[1].split(",")
+            variable_list = re.sub(r"\(.*,.*\)", "()", declaration_parts[1], re.IGNORECASE)
+            variable_list = self._split_outside_quotes(variable_list, ",")  # type: ignore[assignment]
             for variable in variable_list:
                 is_array = any("DIMENSION" in attribute for attribute in attributes)
                 # Split on the "=" sign in case a value is assigned
                 # to the variable on the same line
-                variable_parts = variable.split("=")
+                variable_parts = self._split_outside_quotes(variable, "=")
                 variable_name = variable_parts[0].strip()
                 # This next bit was added after seeing that arrays with
                 # their length declared as part of the variable name,
                 # ended up storing the name with the length part still
                 # on the end of it... so now we search for it and
                 # remove.
-                if re.search(r"\(\d+\)", variable_name) is not None:
-                    # TODO: Add testing for this case when adding
-                    # integration testing
+                if re.search(r"\([\d:,]*\)", variable_name) is not None:
                     is_array = True
                     bracket_index = variable_name.index("(")
                     variable_name = variable_name[:bracket_index]
@@ -149,8 +206,10 @@ class CodeBlock(ABC):
                 # Check the remaining lines to determine if
                 # there is a possibility the variable is unused
                 possibly_unused = True
-                for line in self.contents[content_index + 1 :]:  # noqa: E203
-                    if re.search(rf"\b{variable_name}\b", line.content):
+                for line in self.contents[content_index + 1 :]:
+                    # FORTRAN variable names are case insensitive, so we
+                    # can ignore casing during this search.
+                    if re.search(rf"\b{re.escape(variable_name)}\b", line.content, re.IGNORECASE):
                         possibly_unused = False
 
                 found_variables.append(
@@ -215,3 +274,38 @@ class CodeBlock(ABC):
         type_and_attr_parts.append(type_and_attr_string[start_of_slice:].strip().upper())
 
         return type_and_attr_parts[0], type_and_attr_parts[1:]
+
+    def _split_outside_quotes(self, string_to_split: str, delimiter: str) -> List[str]:
+        split_parts = []
+
+        # Set and unset as we enter and exit quotes
+        active_quote_char = None
+        quote_chars = ("'", '"')
+        start_of_slice = 0
+
+        for i in range(len(string_to_split)):
+            current_str = string_to_split[start_of_slice:i]
+            reverse = current_str[::-1]
+
+            if delimiter == reverse[: len(delimiter)] and active_quote_char is None:
+                # Reaching here means we found our delimiter outside
+                # quotes
+                split_parts.append(string_to_split[start_of_slice : (i - len(delimiter))])
+                start_of_slice = i
+
+            if string_to_split[i] in quote_chars and active_quote_char is None:
+                active_quote_char = string_to_split[i]
+            elif active_quote_char is not None:
+                if string_to_split[i] == active_quote_char:
+                    active_quote_char = None
+
+        # Due to the fact that in our loop we check if we need to split,
+        # THEN we check if we have left a quoted string, if the supplied
+        # string argument ends with a quote character, we have to do one
+        # final check outside the loop to see if a split is needed.
+        if string_to_split[start_of_slice:][-1] in quote_chars:
+            split_parts.append(string_to_split[start_of_slice:])
+        else:
+            split_parts.extend(string_to_split[start_of_slice:].split(delimiter))
+
+        return split_parts
