@@ -1,0 +1,42 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches:
+      - development
+      - production
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Run Unit Tests
+        run: pytest src/python/tests/unit/
+      - name: Run Integration Tests
+        run: pytest src/python/tests/integration
+
+  check_formatting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      # PyYAML stubs need installed, otherwise mypy falls over.
+      - run: pip install types-PyYAML
+      - name: black
+        run: black --check src/python/
+      - name: flake8
+        run: flake8 -v src/python/
+      - name: isort
+        run: isort src/python/ --check-only
+      - name: mypy
+        run: mypy src/python/
