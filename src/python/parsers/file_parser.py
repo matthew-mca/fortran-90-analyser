@@ -29,7 +29,7 @@ logger.addHandler(file_handler2)
 class FileParser:
     """Parses the content of files and directories."""
 
-    def parse_file(self, file_path: str, root_dir_path: Optional[str] = None) -> Union[DigitalFile, FortranFile]:
+    def parse_file(self, file_path, root_dir_path: Optional[str] = None) -> Union[DigitalFile, FortranFile]:
         """Parses a file at a given path and returns it as an object.
 
         Args:
