@@ -1,4 +1,4 @@
-image: python:3.11.2
+image: python:3.13.0
 stages:
   - build
   - test

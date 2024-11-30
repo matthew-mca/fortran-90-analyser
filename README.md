@@ -22,7 +22,7 @@ metrics to the user about their code.
 Currently, the project installation is simply
 [cloning the repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
 and installing any required dependencies, as well as the correct version of Python. This project is
-built on version `3.11.2` of Python.
+built on version `3.13` of Python.
 
 ### Requirements
 
