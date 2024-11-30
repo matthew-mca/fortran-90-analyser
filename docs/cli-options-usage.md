@@ -40,24 +40,40 @@ additional parsing failures!
 
 ## Config Files
 
-It is possible to provide options to the CLI via a `.ini` configuration file. The path to the file
-can be provided using the CLI's `--config` option, or the environment variable `CLI_CONFIG_PATH`. If
-no path is provided, the CLI will default to checking the root of the current working directory for
-a file by the name of `fortran_cli_config.ini`.
+It is possible to provide options to the CLI via a `.ini` or `.toml` configuration file. The path to the file
+can be provided using the CLI's `--config` option, or the environment variable `CLI_CONFIG_PATH`.
 
 The base options that are required for *every* command are listed under a section titled `options`.
 Options specific to a certain command are listed under a section with the title format
 `options.command`, where `command` is the name of the command. The names of the settings in the
-`.ini` file are the same as the names of the flags in the CLI, with the only difference being the
+config file are the same as the names of the flags in the CLI, with the only difference being the
 hyphens (`-`) are instead underscores (`_`).
 
-Below is an example that shows the format of a config file for the application:
+Below is an example that shows the format of both a `.ini` and `.toml` config file for the
+application:
 
+### INI Config
 ```ini
 [options]
 code_path = .
 output_format = json
 output_path = ./results.json
+fortran_only = true
+
+[options.get-summary]
+top_level_blocks = true
+top_level_vars = false
+
+[options.list-all-variables]
+no_duplicates = true
+```
+
+### TOML Config
+```toml
+[options]
+code_path = "."
+output_format = "json"
+output_path = "./results.json"
 fortran_only = true
 
 [options.get-summary]
