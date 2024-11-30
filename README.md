@@ -28,7 +28,7 @@ built on version `3.13` of Python.
 
 Any dependencies needed for the project are listed in the `requirements.txt` and
 `requirements-dev.txt` files, which themselves are compiled using their respective `.in` files and
-the library `pip-tools`. It is recommended to
+the library `uv`. It is recommended to
 [create a virtual environment](https://docs.python.org/3/library/venv.html#creating-virtual-environments)
 for the project before installing any dependencies.
 
@@ -38,12 +38,12 @@ Use the following command in your terminal to install these dependencies:
 pip3 install -r requirements.txt -r requirements-dev.txt
 ```
 
-Alternatively, install `pip-tools` directly and use the included `pip-sync` command to
+Alternatively, install `uv` directly and use the included `pip-sync` command to
 install/upgrade/uninstall everything necessary to match the requirements:
 
 ```
-pip3 install pip-tools
-pip-sync requirements.txt requirements-dev.txt
+pip3 install uv
+uv pip sync requirements.txt requirements-dev.txt
 ```
 
 ## Usage

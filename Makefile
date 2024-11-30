@@ -4,7 +4,7 @@ format-code:
 
 .PHONY: dependencies
 dependencies:
-	@pip-sync requirements.txt requirements-dev.txt
+	@uv pip sync requirements.txt requirements-dev.txt
 
 .PHONY: lint
 lint:
