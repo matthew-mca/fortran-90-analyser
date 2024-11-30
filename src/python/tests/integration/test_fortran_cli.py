@@ -1,4 +1,5 @@
 import json
+import os
 from unittest.mock import patch
 
 import pytest
@@ -18,7 +19,7 @@ class TestFortranCLI:
 
     @pytest.fixture
     def live_data_path(self):
-        return "./src/python/tests/integration/.live_test_data/Fortran"
+        return os.path.abspath("./src/python/tests/integration/.live_test_data/Fortran")
 
     def test_check_output_path_file_extension(self, runner, live_data_path):
         expected_error_message = (
@@ -110,7 +111,7 @@ class TestFortranCLI:
             f.write("top_level_vars = false\n")
 
         expected_output = "Results serialized successfully"
-        result = runner.invoke(cli, ["--config", config_path, "get-summary"])
+        result = runner.invoke(cli, ["--config", str(config_path), "get-summary"])
 
         assert result.exit_code == 0
         assert expected_output in result.output
