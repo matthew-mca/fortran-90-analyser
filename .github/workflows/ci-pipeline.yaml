@@ -32,11 +32,11 @@ jobs:
       - run: pip install -r requirements.txt -r requirements-dev.txt
       # PyYAML stubs need installed, otherwise mypy falls over.
       - run: pip install types-PyYAML
-      - name: black
-        run: black --check src/python/
-      - name: flake8
-        run: flake8 -v src/python/
+      - name: format
+        run: ruff format --check src/python/
+      - name: lint
+        run: ruff check src/python/
       - name: isort
-        run: isort src/python/ --check-only
+        run: ruff check --select I src/python/
       - name: mypy
         run: mypy src/python/

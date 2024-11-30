@@ -1,6 +1,8 @@
+SRC_ROOT="src/python"
+
 .PHONY: format-code
 format-code:
-	@black src/python/
+	@ruff format $(SRC_ROOT)
 
 .PHONY: dependencies
 dependencies:
@@ -8,7 +10,7 @@ dependencies:
 
 .PHONY: lint
 lint:
-	@flake8 src/python/
+	@ruff check $(SRC_ROOT)
 
 .PHONY: test
 test:
@@ -29,4 +31,8 @@ test-with-coverage:
 
 .PHONY: type-check
 type-check:
-	@mypy src/python/
+	@mypy $(SRC_ROOT)
+
+.PHONY: sort-imports
+sort-imports:
+	@ruff check --select I --fix $(SRC_ROOT)

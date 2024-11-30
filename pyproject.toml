@@ -1,15 +1,7 @@
-[tool.black]
-line-length = 120
-
 [tool.coverage.run]
 omit = [
     "src/python/tests/*",
 ]
-
-[tool.isort]
-line_length = 120
-profile = "black"
-src_paths = ["src/python"]
 
 [tool.mypy]
 files = "./src/python"
@@ -24,3 +16,11 @@ warn_unreachable = true
 
 [tool.pytest.ini_options]
 pythonpath = "src/python"
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+src = ["src/python"]
+
+[tool.ruff.lint]
+ignore = ["E203"]
