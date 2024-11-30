@@ -13,9 +13,10 @@ the project.
 """
 
 import os
+import tomllib
 from collections import defaultdict
 from configparser import ConfigParser
-from typing import Dict
+from typing import Any, Dict
 
 import click
 
@@ -39,21 +40,42 @@ def check_output_path_file_extension(output_format: str, output_path: str) -> No
         )
 
 
-def read_from_config(ctx: click.Context, param: click.Option, filename: str) -> None:
+def read_from_config(ctx: click.Context, param: click.Option, config_path: str | None) -> None:
+    if config_path is None:
+        return
+
+    if config_path.endswith("toml"):
+        ctx.default_map = _read_toml_config(config_path)
+    elif config_path.endswith("ini"):
+        ctx.default_map = _read_ini_config(config_path)
+    else:
+        raise click.BadParameter("Config file must be of type TOML or INI.")
+
+
+def _read_ini_config(config_path: str) -> dict[str, Any]:
     cfg = ConfigParser()
-    cfg.read(filename)
-    ctx.default_map = {}
+    cfg.read(config_path)
+    ini_config: dict[str, Any] = {}
 
     for sect in cfg.sections():
         command_path = sect.split(".")
         if command_path[0] != "options":
             continue
 
-        defaults = ctx.default_map
+        defaults = ini_config
         for command in command_path[1:]:
             defaults = defaults.setdefault(command, {})
 
         defaults.update(cfg[sect])
+
+    return ini_config
+
+
+def _read_toml_config(config_path: str) -> dict[str, Any]:
+    with open(config_path, "rb") as f:
+        toml_config: dict[str, Any] = tomllib.load(f)
+
+    return toml_config["options"]
 
 
 @click.group(
@@ -85,10 +107,12 @@ def read_from_config(ctx: click.Context, param: click.Option, filename: str) -> 
 @click.option(
     "--config",
     callback=read_from_config,
-    default="./fortran_cli_config.ini",
     envvar="CLI_CONFIG_PATH",
     expose_value=False,
-    help="The path to an INI file containing default values for the various CLI options.",
+    help=(
+        "The path to a config file containing default values for the "
+        "various CLI options. Accepts both INI and TOML formats."
+    ),
     is_eager=True,
     show_default=True,
     type=click.Path(dir_okay=False),
